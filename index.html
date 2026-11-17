@@ -1,1071 +1,926 @@
-<meta name="claude:viewport-fit-sides" content="cover">
-<title>CV ATS Checker</title>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CVRoom AI — Cek CV Kamu Lolos ATS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
-
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-  /* Layout: split-panel on desktop, stacked on mobile */
-  :root {
-    --bg: #F7F8FA;
-    --surface: #FFFFFF;
-    --border: #E2E6EC;
-    --fg: #1A1D23;
-    --fg-muted: #6B7280;
-    --accent: #2563EB;
-    --accent-light: #EEF3FF;
-    --accent-hover: #1D4ED8;
-    --good: #16A34A;
-    --good-bg: #F0FDF4;
-    --warn: #D97706;
-    --warn-bg: #FFFBEB;
-    --danger: #DC2626;
-    --danger-bg: #FEF2F2;
-    --radius: 10px;
-    --mono: 'DM Mono', monospace;
-    --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0F1117;
-      --surface: #1A1D26;
-      --border: #2A2F3D;
-      --fg: #E8EBF0;
-      --fg-muted: #8B92A3;
-      --accent: #3B82F6;
-      --accent-light: #1A2340;
-      --accent-hover: #60A5FA;
-      --good: #22C55E;
-      --good-bg: #0A1F12;
-      --warn: #FBBF24;
-      --warn-bg: #1C1500;
-      --danger: #F87171;
-      --danger-bg: #200A0A;
-      color-scheme: dark;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #0F1117;
-    --surface: #1A1D26;
-    --border: #2A2F3D;
-    --fg: #E8EBF0;
-    --fg-muted: #8B92A3;
-    --accent: #3B82F6;
-    --accent-light: #1A2340;
-    --accent-hover: #60A5FA;
-    --good: #22C55E;
-    --good-bg: #0A1F12;
-    --warn: #FBBF24;
-    --warn-bg: #1C1500;
-    --danger: #F87171;
-    --danger-bg: #200A0A;
-    color-scheme: dark;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; }
-
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--fg);
-    margin: 0;
-    min-height: 100%;
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .app-shell {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding-inline: max(16px, env(safe-area-inset-left, 0px));
-    padding-block: 32px;
-  }
-
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-icon {
-    width: 36px;
-    height: 36px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .logo-icon svg { width: 20px; height: 20px; }
-
-  .logo-text {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-    line-height: 1.1;
-  }
-
-  .logo-sub {
-    font-size: 11px;
-    color: var(--fg-muted);
-    font-family: var(--mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .api-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--fg-muted);
-    cursor: pointer;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 12px;
-    transition: border-color 0.15s;
-  }
-
-  .api-badge:hover { border-color: var(--accent); }
-
-  .api-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--danger);
-    flex-shrink: 0;
-  }
-
-  .api-dot.connected { background: var(--good); }
-
-  /* Main layout */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-
-  @media (max-width: 720px) {
-    .main-grid { grid-template-columns: 1fr; }
-  }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .panel-title {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--fg-muted);
-  }
-
-  .char-count {
-    font-size: 12px;
-    color: var(--fg-muted);
-    font-family: var(--mono);
-  }
-
-  textarea {
-    width: 100%;
-    display: block;
-    padding: 16px 18px;
-    border: none;
-    background: transparent;
-    color: var(--fg);
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.65;
-    resize: vertical;
-    min-height: 220px;
-    outline: none;
-  }
-
-  textarea::placeholder { color: var(--fg-muted); opacity: 0.7; }
-
-  /* PDF Upload zone */
-  .upload-zone {
-    margin: 16px 18px;
-    border: 2px dashed var(--border);
-    border-radius: 8px;
-    padding: 28px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    min-height: 160px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--accent);
-    background: var(--accent-light);
-  }
-
-  .upload-icon { font-size: 28px; line-height: 1; }
-
-  .upload-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--fg);
-  }
-
-  .upload-hint { font-size: 12px; color: var(--fg-muted); }
-  .upload-zone input[type=file] { display: none; }
-
-  .pdf-preview {
-    margin: 0 18px 16px;
-    background: var(--bg);
-    border-radius: 7px;
-    padding: 10px 12px;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    display: none;
-  }
-
-  .pdf-preview.visible { display: flex; }
-
-  .pdf-name {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-
-  .pdf-remove {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--fg-muted);
-    font-size: 16px;
-    padding: 0 4px;
-    line-height: 1;
-  }
-
-  .pdf-remove:hover { color: var(--danger); }
-
-  .pdf-status {
-    font-size: 11px;
-    color: var(--good);
-    font-family: var(--mono);
-    white-space: nowrap;
-  }
-
-  .pdf-status.loading { color: var(--warn); }
-
-  /* API key section */
-  .api-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 20px;
-    display: none;
-  }
-
-  .api-section.open { display: block; }
-
-  .api-section label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .api-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .api-row input {
-    flex: 1;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: var(--mono);
-    font-size: 13px;
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 0;
-  }
-
-  .api-row input:focus { border-color: var(--accent); }
-
-  .btn-sm {
-    padding: 8px 14px;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    background: var(--accent);
-    color: #fff;
-    white-space: nowrap;
-    transition: background 0.15s;
-  }
-
-  .btn-sm:hover { background: var(--accent-hover); }
-
-  .api-hint {
-    font-size: 12px;
-    color: var(--fg-muted);
-    margin-top: 8px;
-  }
-
-  /* Analyze button */
-  .analyze-row {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-  }
-
-  .btn-analyze {
-    padding: 13px 36px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 700;
-    font-family: var(--sans);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.15s, transform 0.1s;
-    letter-spacing: -0.2px;
-    width: 100%;
-    max-width: 400px;
-    justify-content: center;
-  }
-
-  .btn-analyze:hover:not(:disabled) { background: var(--accent-hover); }
-  .btn-analyze:active:not(:disabled) { transform: scale(0.98); }
-  .btn-analyze:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  /* Result area */
-  .result-wrap {
-    margin-top: 24px;
-  }
-
-  .result-wrap[hidden] { display: none; }
-
-  /* Score ring */
-  .score-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px 20px;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .score-ring {
-    position: relative;
-    width: 90px;
-    height: 90px;
-    flex-shrink: 0;
-  }
-
-  .score-ring svg { width: 90px; height: 90px; transform: rotate(-90deg); }
-
-  .score-ring-track { fill: none; stroke: var(--border); stroke-width: 7; }
-  .score-ring-fill {
-    fill: none;
-    stroke-width: 7;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1), stroke 0.3s;
-  }
-
-  .score-label {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .score-num {
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .score-pct {
-    font-size: 11px;
-    color: var(--fg-muted);
-    font-family: var(--mono);
-  }
-
-  .score-meta { flex: 1; min-width: 0; }
-
-  .score-verdict {
-    font-size: 17px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .score-desc {
-    font-size: 13px;
-    color: var(--fg-muted);
-    line-height: 1.5;
-  }
-
-  /* Sections */
-  .result-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-
-  .result-section-head {
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .section-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 12px;
-  }
-
-  .section-icon.good { background: var(--good-bg); color: var(--good); }
-  .section-icon.warn { background: var(--warn-bg); color: var(--warn); }
-  .section-icon.danger { background: var(--danger-bg); color: var(--danger); }
-  .section-icon.info { background: var(--accent-light); color: var(--accent); }
-
-  .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    flex: 1;
-  }
-
-  .section-chevron {
-    color: var(--fg-muted);
-    font-size: 12px;
-    transition: transform 0.2s;
-  }
-
-  .section-chevron.open { transform: rotate(180deg); }
-
-  .result-section-body {
-    padding: 0 16px 14px;
-    display: none;
-  }
-
-  .result-section-body.open { display: block; }
-
-  /* Tags / chips */
-  .chip-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
-  }
-
-  .chip {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: var(--mono);
-  }
-
-  .chip.found { background: var(--good-bg); color: var(--good); }
-  .chip.missing { background: var(--danger-bg); color: var(--danger); }
-
-  /* Suggestions list */
-  .sug-list {
-    list-style: none;
-    padding: 0;
-    margin: 8px 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-
-  .sug-list li {
-    padding: 9px 12px;
-    background: var(--bg);
-    border-radius: 7px;
-    font-size: 13px;
-    line-height: 1.5;
-    border-left: 3px solid var(--accent);
-  }
-
-  /* Loading */
-  .spinner {
-    width: 18px;
-    height: 18px;
-    border: 2.5px solid rgba(255,255,255,0.35);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-text {
-    font-size: 13px;
-    color: var(--fg-muted);
-    text-align: center;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .loading-spin {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  /* Error */
-  .error-box {
-    background: var(--danger-bg);
-    color: var(--danger);
-    border: 1px solid var(--danger);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13px;
-    margin-top: 16px;
-  }
-
-  .error-box[hidden] { display: none; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .spinner, .loading-spin { animation: none; }
-    .score-ring-fill { transition: none; }
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F5F7FA;
+  --white: #FFFFFF;
+  --border: #E4E7EC;
+  --fg: #101828;
+  --fg-muted: #667085;
+  --accent: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-light: #EEF2FF;
+  --good: #027A48;
+  --good-bg: #ECFDF3;
+  --good-border: #ABEFC6;
+  --warn: #B54708;
+  --warn-bg: #FFFAEB;
+  --warn-border: #FEDF89;
+  --danger: #B42318;
+  --danger-bg: #FEF3F2;
+  --danger-border: #FECDCA;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* NAV */
+.nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.nav-logo-dot {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-api {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--fg-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: border-color 0.15s;
+}
+.btn-api:hover { border-color: var(--accent); color: var(--accent); }
+
+.api-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #D0D5DD;
+  flex-shrink: 0;
+}
+.api-dot.on { background: #12B76A; }
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 48px 24px 32px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--fg);
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.hero p {
+  font-size: 15px;
+  color: var(--fg-muted);
+  line-height: 1.65;
+}
+
+/* MAIN CARD */
+.main-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.card-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title-num {
+  width: 20px; height: 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+/* UPLOAD ZONE */
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 36px 24px;
+  cursor: pointer;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  margin: 16px;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+  min-height: 150px;
+}
+.upload-label:hover, .upload-label.drag { border-color: var(--accent); background: var(--accent-light); }
+.upload-label input { display: none; }
+
+.upload-icon-wrap {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.upload-title { font-size: 14px; font-weight: 600; color: var(--fg); }
+.upload-sub { font-size: 12px; color: var(--fg-muted); }
+
+.upload-btn-fake {
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid #C7D2FE;
+  border-radius: 7px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* File preview */
+.file-preview {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--good-bg);
+  border-top: 1px solid var(--good-border);
+}
+.file-preview.show { display: flex; }
+.file-icon { font-size: 22px; }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 12px; color: var(--good); }
+.file-remove { background: none; border: none; cursor: pointer; color: var(--fg-muted); font-size: 18px; padding: 0 4px; }
+.file-remove:hover { color: var(--danger); }
+
+/* TEXTAREA */
+textarea {
+  width: 100%;
+  display: block;
+  padding: 16px 20px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.65;
+  resize: vertical;
+  min-height: 180px;
+}
+textarea::placeholder { color: #B0B9C8; }
+
+/* API MODAL */
+.api-modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(16,24,40,0.5);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.api-modal-bg.open { display: flex; }
+.api-modal {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.api-modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.api-modal p { font-size: 13px; color: var(--fg-muted); margin-bottom: 20px; line-height: 1.6; }
+.api-modal label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; }
+.api-modal input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--sans);
+  outline: none;
+  margin-bottom: 8px;
+  color: var(--fg);
+}
+.api-modal input:focus { border-color: var(--accent); }
+.api-modal-hint { font-size: 12px; color: var(--fg-muted); margin-bottom: 20px; }
+.api-modal-row { display: flex; gap: 10px; }
+.btn-cancel {
+  flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+  background: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans);
+}
+.btn-save {
+  flex: 1; padding: 10px; background: var(--accent); color: white; border: none;
+  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans);
+}
+.btn-save:hover { background: var(--accent-hover); }
+
+/* ANALYZE BTN */
+.analyze-wrap { padding: 0 0 8px; }
+.btn-analyze {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--sans);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: -0.1px;
+}
+.btn-analyze:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-analyze:active:not(:disabled) { transform: scale(0.99); }
+.btn-analyze:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ERROR */
+.error-box {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  margin-top: 12px;
+  display: none;
+}
+.error-box.show { display: block; }
+
+/* RESULTS */
+.results { display: none; margin-top: 24px; }
+.results.show { display: block; }
+
+/* SCORE CARD */
+.score-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.score-ring {
+  position: relative;
+  width: 88px; height: 88px;
+  flex-shrink: 0;
+}
+.score-ring svg { width: 88px; height: 88px; transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--border); stroke-width: 7; }
+.ring-fill {
+  fill: none; stroke-width: 7; stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);
+}
+.score-label {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-num { font-size: 24px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.score-of { font-size: 10px; color: var(--fg-muted); font-weight: 500; }
+
+.score-info { flex: 1; min-width: 0; }
+.score-verdict { font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.3px; }
+.score-desc { font-size: 13px; color: var(--fg-muted); line-height: 1.55; }
+
+/* STAT ROW */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.stat-num { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 11px; color: var(--fg-muted); font-weight: 500; margin-top: 3px; }
+
+/* SECTION CARDS */
+.section-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.section-head {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.section-pill {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.pill-good { background: var(--good-bg); color: var(--good); }
+.pill-warn { background: var(--warn-bg); color: var(--warn); }
+.pill-danger { background: var(--danger-bg); color: var(--danger); }
+.pill-info { background: var(--accent-light); color: var(--accent); }
+.section-title-text { flex: 1; font-size: 13px; font-weight: 600; }
+.chevron { font-size: 11px; color: var(--fg-muted); transition: transform 0.2s; }
+.chevron.up { transform: rotate(180deg); }
+
+.section-body { display: none; padding: 0 16px 14px; }
+.section-body.open { display: block; }
+
+/* CHIPS */
+.chip-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.chip {
+  padding: 4px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.chip-found { background: var(--good-bg); color: var(--good); border: 1px solid var(--good-border); }
+.chip-miss { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* LIST */
+.sug-list { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.sug-list li {
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-left: 3px solid var(--accent);
+}
+.sug-list.warn-list li { border-left-color: #F79009; }
+.sug-list.good-list li { border-left-color: #12B76A; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 24px; }
+  .stat-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-num { font-size: 18px; }
+  .score-card { gap: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .ring-fill { transition: none; }
+}
 </style>
+</head>
+<body>
 
-<div class="app-shell">
-  <header class="header">
-    <div class="logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 5h12M4 10h8M4 15h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="16" cy="13" r="3" fill="#fff" opacity="0.9"/>
-          <path d="M14.5 13l1 1 2-2" stroke="#2563EB" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">CV ATS Checker</div>
-        <div class="logo-sub">Powered by Groq AI</div>
-      </div>
-    </div>
-    <button class="api-badge" id="apiToggle" onclick="toggleApiSection()">
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-dot">CV</div>
+    CVRoom AI
+  </a>
+  <div class="nav-right">
+    <button class="btn-api" onclick="openApiModal()">
       <span class="api-dot" id="apiDot"></span>
-      <span id="apiStatus">Belum ada API Key</span>
+      <span id="apiLabel">Hubungkan API Key</span>
     </button>
-  </header>
-
-  <!-- API key section -->
-  <div class="api-section" id="apiSection">
-    <label for="apiKeyInput">Groq API Key</label>
-    <div class="api-row">
-      <input
-        type="password"
-        id="apiKeyInput"
-        placeholder="gsk_..."
-        autocomplete="off"
-        spellcheck="false"
-      >
-      <button class="btn-sm" onclick="saveApiKey()">Simpan</button>
-    </div>
-    <p class="api-hint">Key tersimpan di browser kamu aja, tidak dikirim ke mana pun kecuali Groq.</p>
   </div>
+</nav>
 
-  <!-- Input grid -->
-  <div class="main-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Upload CV (PDF)</span>
-        <span class="char-count" id="cvCount">Belum ada file</span>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">✦ AI-Powered ATS Checker</div>
+  <h1>CV kamu siap tembus<br>sistem ATS?</h1>
+  <p>Upload PDF CV kamu, masukkan job description, dan dapatkan analisis lengkap beserta saran perbaikan dalam hitungan detik.</p>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <!-- Step 1: Upload CV -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        <span class="card-title-num">1</span>
+        Upload CV kamu
       </div>
-      <label class="upload-zone" id="uploadZone"
-        ondragover="handleDragOver(event)"
-        ondragleave="handleDragLeave(event)"
-        ondrop="handleDrop(event)">
-        <input type="file" id="pdfInput" accept=".pdf" onchange="handleFileSelect(event)" style="display:none">
-        <div class="upload-icon">📄</div>
-        <div class="upload-label">Klik atau drag & drop PDF CV kamu</div>
-        <div class="upload-hint">Format: PDF • Maks. 10MB</div>
-      </label>
-      <div class="pdf-preview" id="pdfPreview">
-        <span>📄</span>
-        <span class="pdf-name" id="pdfName"></span>
-        <span class="pdf-status" id="pdfStatus">✓ Terbaca</span>
-        <button class="pdf-remove" onclick="removeFile()" title="Hapus file">✕</button>
-      </div>
+      <span class="card-hint" id="cvWordCount"></span>
     </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Deskripsi pekerjaan (Job Desc)</span>
-        <span class="char-count" id="jdCount">0 kata</span>
+    <label class="upload-label" id="uploadLabel"
+      ondragover="onDragOver(event)"
+      ondragleave="onDragLeave(event)"
+      ondrop="onDrop(event)">
+      <input type="file" accept=".pdf" id="pdfInput" onchange="onFileSelect(event)">
+      <div class="upload-icon-wrap">📄</div>
+      <div class="upload-title">Klik untuk pilih file, atau drag & drop</div>
+      <div class="upload-sub">PDF • Maks. 10 MB</div>
+      <span class="upload-btn-fake">Pilih File PDF</span>
+    </label>
+    <div class="file-preview" id="filePreview">
+      <span class="file-icon">📄</span>
+      <div class="file-info">
+        <div class="file-name" id="fileName"></div>
+        <div class="file-meta" id="fileMeta"></div>
       </div>
-      <textarea
-        id="jdText"
-        placeholder="Paste job description yang kamu lamar di sini...&#10;&#10;Contoh:&#10;Kami mencari Warehouse Operator yang berpengalaman dalam:&#10;- Pengelolaan gudang&#10;- Sortir barang&#10;- ..."
-        oninput="updateCount('jdText','jdCount')"
-      ></textarea>
+      <button class="file-remove" onclick="removeFile()" title="Hapus">✕</button>
     </div>
   </div>
 
-  <div class="analyze-row">
+  <!-- Step 2: Job Description -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">
+        <span class="card-title-num">2</span>
+        Paste job description yang kamu lamar
+      </div>
+      <span class="card-hint" id="jdCount"></span>
+    </div>
+    <textarea id="jdText"
+      placeholder="Contoh:&#10;Kami mencari Staff Gudang / Warehouse Operator yang berpengalaman di bidang logistik.&#10;&#10;Kualifikasi:&#10;- Pengalaman min. 1 tahun di bidang pergudangan&#10;- Familiar dengan sistem WMS&#10;- Mampu bekerja dalam tim..."
+      oninput="countWords(this,'jdCount')"></textarea>
+  </div>
+
+  <!-- Analyze -->
+  <div class="analyze-wrap">
     <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
-      <span id="btnContent">Analisis CV Sekarang</span>
+      <span id="btnText">Analisis CV Sekarang</span>
     </button>
   </div>
 
-  <div class="error-box" id="errorBox" hidden></div>
+  <div class="error-box" id="errBox"></div>
 
-  <!-- Result area -->
-  <div class="result-wrap" id="resultWrap" hidden>
+  <!-- RESULTS -->
+  <div class="results" id="results">
+
     <!-- Score -->
-    <div class="score-block" id="scoreBlock">
+    <div class="score-card">
       <div class="score-ring">
-        <svg viewBox="0 0 90 90">
-          <circle class="score-ring-track" cx="45" cy="45" r="38"/>
-          <circle class="score-ring-fill" id="ringFill" cx="45" cy="45" r="38"
-            stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+        <svg viewBox="0 0 88 88">
+          <circle class="ring-track" cx="44" cy="44" r="37"/>
+          <circle class="ring-fill" id="ringFill" cx="44" cy="44" r="37"
+            stroke-dasharray="232.48" stroke-dashoffset="232.48"/>
         </svg>
         <div class="score-label">
           <span class="score-num" id="scoreNum">0</span>
-          <span class="score-pct">/ 100</span>
+          <span class="score-of">/ 100</span>
         </div>
       </div>
-      <div class="score-meta">
+      <div class="score-info">
         <div class="score-verdict" id="scoreVerdict"></div>
         <div class="score-desc" id="scoreDesc"></div>
       </div>
     </div>
 
-    <!-- Sections -->
-    <div id="resultSections"></div>
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-num" id="statFound" style="color:#027A48">0</div>
+        <div class="stat-label">Keyword Cocok</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statMiss" style="color:#B42318">0</div>
+        <div class="stat-label">Keyword Kurang</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" id="statSug" style="color:#4F46E5">0</div>
+        <div class="stat-label">Saran Perbaikan</div>
+      </div>
+    </div>
+
+    <!-- Detail sections -->
+    <div id="sectionsWrap"></div>
+
+  </div>
+</div>
+
+<!-- API MODAL -->
+<div class="api-modal-bg" id="apiModal">
+  <div class="api-modal">
+    <h2>Groq API Key</h2>
+    <p>CVRoom AI menggunakan Groq untuk analisis. API key tersimpan di browser kamu saja dan tidak dikirim ke server manapun selain Groq.</p>
+    <label for="apiInput">API Key</label>
+    <input type="password" id="apiInput" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+    <div class="api-modal-hint">Dapatkan gratis di <strong>console.groq.com</strong> → API Keys</div>
+    <div class="api-modal-row">
+      <button class="btn-cancel" onclick="closeApiModal()">Batal</button>
+      <button class="btn-save" onclick="saveApiKey()">Simpan</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // ---- PDF.js ----
-  const pdfjsScript = document.createElement('script');
-  pdfjsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-  document.head.appendChild(pdfjsScript);
-  pdfjsScript.onload = () => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ---- PDF.js ----
+(function() {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  s.onload = () => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   };
+  document.head.appendChild(s);
+})();
 
-  // ---- State ----
-  let apiKey = '';
-  let cvExtractedText = '';
+// ---- State ----
+let apiKey = '';
+let cvText = '';
+
+try { apiKey = localStorage.getItem('groq_key') || ''; } catch(e) {}
+updateApiUI();
+
+function updateApiUI() {
+  document.getElementById('apiDot').className = 'api-dot' + (apiKey ? ' on' : '');
+  document.getElementById('apiLabel').textContent = apiKey ? 'API Key ✓' : 'Hubungkan API Key';
+}
+
+function openApiModal() {
+  document.getElementById('apiModal').classList.add('open');
+  if (apiKey) document.getElementById('apiInput').value = apiKey;
+  setTimeout(() => document.getElementById('apiInput').focus(), 100);
+}
+
+function closeApiModal() {
+  document.getElementById('apiModal').classList.remove('open');
+}
+
+function saveApiKey() {
+  const v = document.getElementById('apiInput').value.trim();
+  if (!v) return;
+  apiKey = v;
+  try { localStorage.setItem('groq_key', v); } catch(e) {}
+  updateApiUI();
+  closeApiModal();
+}
+
+document.getElementById('apiModal').addEventListener('click', function(e) {
+  if (e.target === this) closeApiModal();
+});
+
+// ---- File ----
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadLabel').classList.add('drag');
+}
+function onDragLeave(e) {
+  document.getElementById('uploadLabel').classList.remove('drag');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadLabel').classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') processFile(f);
+  else showErr('File harus berformat PDF.');
+}
+function onFileSelect(e) {
+  if (e.target.files[0]) processFile(e.target.files[0]);
+}
+
+function removeFile() {
+  cvText = '';
+  document.getElementById('pdfInput').value = '';
+  document.getElementById('filePreview').classList.remove('show');
+  document.getElementById('uploadLabel').style.display = '';
+  document.getElementById('cvWordCount').textContent = '';
+}
+
+async function processFile(file) {
+  if (file.size > 10 * 1024 * 1024) { showErr('File terlalu besar. Maks 10MB.'); return; }
+
+  document.getElementById('uploadLabel').style.display = 'none';
+  const preview = document.getElementById('filePreview');
+  const nameEl = document.getElementById('fileName');
+  const metaEl = document.getElementById('fileMeta');
+
+  nameEl.textContent = file.name;
+  metaEl.textContent = 'Membaca isi PDF...';
+  preview.classList.add('show');
+  hideErr();
 
   try {
-    apiKey = localStorage.getItem('groq_api_key') || '';
-  } catch(e) {}
-
-  updateApiUI();
-
-  function updateApiUI() {
-    const dot = document.getElementById('apiDot');
-    const status = document.getElementById('apiStatus');
-    if (apiKey) {
-      dot.className = 'api-dot connected';
-      status.textContent = 'API Key tersimpan ✓';
-    } else {
-      dot.className = 'api-dot';
-      status.textContent = 'Belum ada API Key';
+    if (!window.pdfjsLib) throw new Error('PDF reader belum siap. Tunggu 1 detik lalu coba lagi.');
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(x => x.str).join(' ') + '\n';
     }
+    cvText = text.trim();
+    if (!cvText) throw new Error('PDF ini tampaknya berupa gambar/scan. Gunakan PDF dengan teks yang bisa diseleksi.');
+    const words = cvText.split(/\s+/).length;
+    metaEl.textContent = '✓ Berhasil dibaca · ' + pdf.numPages + ' halaman · ' + words + ' kata';
+    metaEl.style.color = '#027A48';
+    document.getElementById('cvWordCount').textContent = words + ' kata';
+  } catch(err) {
+    cvText = '';
+    metaEl.textContent = '✗ Gagal dibaca';
+    metaEl.style.color = '#B42318';
+    showErr(err.message);
   }
+}
 
-  function toggleApiSection() {
-    const sec = document.getElementById('apiSection');
-    sec.classList.toggle('open');
-    if (sec.classList.contains('open') && apiKey) {
-      document.getElementById('apiKeyInput').value = apiKey;
-    }
-  }
+function countWords(el, id) {
+  const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
+  document.getElementById(id).textContent = w ? w + ' kata' : '';
+}
 
-  function saveApiKey() {
-    const input = document.getElementById('apiKeyInput').value.trim();
-    if (!input) return;
-    apiKey = input;
-    try { localStorage.setItem('groq_api_key', apiKey); } catch(e) {}
-    updateApiUI();
-    document.getElementById('apiSection').classList.remove('open');
-  }
+// ---- Analyze ----
+async function analyze() {
+  hideErr();
+  if (!apiKey) { openApiModal(); return; }
+  if (!cvText) { showErr('Upload PDF CV kamu dulu ya.'); return; }
+  const jd = document.getElementById('jdText').value.trim();
+  if (!jd) { showErr('Isi dulu job description-nya.'); return; }
 
-  // ---- PDF Upload handlers ----
-  function handleDragOver(e) {
-    e.preventDefault();
-    document.getElementById('uploadZone').classList.add('drag-over');
-  }
+  setLoading(true);
+  document.getElementById('results').classList.remove('show');
 
-  function handleDragLeave(e) {
-    document.getElementById('uploadZone').classList.remove('drag-over');
-  }
-
-  function handleDrop(e) {
-    e.preventDefault();
-    document.getElementById('uploadZone').classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') processFile(file);
-    else showError('File harus berformat PDF ya.');
-  }
-
-  function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (file) processFile(file);
-  }
-
-  function removeFile() {
-    cvExtractedText = '';
-    document.getElementById('pdfInput').value = '';
-    document.getElementById('pdfPreview').classList.remove('visible');
-    document.getElementById('uploadZone').style.display = '';
-    document.getElementById('cvCount').textContent = 'Belum ada file';
-    document.getElementById('errorBox').hidden = true;
-  }
-
-  async function processFile(file) {
-    if (file.size > 10 * 1024 * 1024) {
-      showError('File terlalu besar. Maks. 10MB ya.');
-      return;
-    }
-
-    const nameEl = document.getElementById('pdfName');
-    const statusEl = document.getElementById('pdfStatus');
-    const preview = document.getElementById('pdfPreview');
-    const zone = document.getElementById('uploadZone');
-    const countEl = document.getElementById('cvCount');
-
-    nameEl.textContent = file.name;
-    statusEl.textContent = 'Membaca...';
-    statusEl.className = 'pdf-status loading';
-    preview.classList.add('visible');
-    zone.style.display = 'none';
-    document.getElementById('errorBox').hidden = true;
-
-    try {
-      if (!window.pdfjsLib) throw new Error('PDF reader belum siap, coba lagi sebentar.');
-
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(' ');
-        fullText += pageText + '\n';
-      }
-
-      cvExtractedText = fullText.trim();
-
-      if (!cvExtractedText) throw new Error('PDF ini sepertinya berisi gambar/scan, bukan teks. Coba PDF yang bisa di-select teksnya.');
-
-      const words = cvExtractedText.split(/\s+/).length;
-      countEl.textContent = words + ' kata terbaca';
-      statusEl.textContent = '✓ Terbaca (' + pdf.numPages + ' hal.)';
-      statusEl.className = 'pdf-status';
-
-    } catch(err) {
-      cvExtractedText = '';
-      statusEl.textContent = '✗ Gagal';
-      statusEl.className = 'pdf-status';
-      statusEl.style.color = 'var(--danger)';
-      countEl.textContent = 'Gagal dibaca';
-      showError(err.message || 'Gagal membaca PDF. Coba lagi.');
-    }
-  }
-
-  function updateCount(textareaId, countId) {
-    const val = document.getElementById(textareaId).value.trim();
-    const words = val ? val.split(/\s+/).length : 0;
-    document.getElementById(countId).textContent = words + ' kata';
-  }
-
-  // ---- Analyze ----
-  async function analyze() {
-    const cv = cvExtractedText;
-    const jd = document.getElementById('jdText').value.trim();
-    const errBox = document.getElementById('errorBox');
-
-    errBox.hidden = true;
-
-    if (!apiKey) {
-      toggleApiSection();
-      showError('Masukkan Groq API Key dulu ya.');
-      return;
-    }
-    if (!cv) { showError('Upload PDF CV kamu dulu ya.'); return; }
-    if (!jd) { showError('Job description-nya belum diisi.'); return; }
-
-    setLoading(true);
-    document.getElementById('resultWrap').hidden = true;
-
-    const prompt = `Kamu adalah pakar ATS (Applicant Tracking System) dan rekrutmen profesional. Analisis CV berikut terhadap job description yang diberikan.
-
-PENTING: Balas HANYA dengan JSON valid, tanpa teks lain sebelum atau sesudah JSON.
+  const prompt = `Kamu adalah pakar rekrutmen dan ATS (Applicant Tracking System). Analisis CV ini terhadap job description dengan teliti.
 
 CV:
-${cv}
+${cvText.slice(0, 4000)}
 
 JOB DESCRIPTION:
-${jd}
+${jd.slice(0, 2000)}
 
-Analisis dan balas dengan format JSON berikut (HANYA JSON, tidak ada markdown, tidak ada penjelasan di luar JSON):
+Balas HANYA dengan JSON valid (tanpa markdown, tanpa teks lain):
 {
-  "score": <angka 0-100>,
-  "verdict": "<Sangat Kuat | Kuat | Cukup | Perlu Perbaikan | Belum Siap>",
-  "summary": "<ringkasan singkat 1-2 kalimat dalam bahasa Indonesia>",
-  "keywords_found": ["<keyword1>", "<keyword2>"],
-  "keywords_missing": ["<keyword1>", "<keyword2>"],
-  "strengths": ["<poin kekuatan 1>", "<poin kekuatan 2>", "<poin kekuatan 3>"],
-  "improvements": ["<saran perbaikan 1>", "<saran perbaikan 2>", "<saran perbaikan 3>", "<saran perbaikan 4>"],
-  "format_issues": ["<masalah format 1 jika ada>"]
+  "score": <0-100>,
+  "verdict": "<Sangat Kuat|Kuat|Cukup|Perlu Perbaikan|Belum Siap>",
+  "summary": "<ringkasan 2 kalimat dalam bahasa Indonesia>",
+  "keywords_found": ["keyword yang ada di CV dan relevan dengan JD"],
+  "keywords_missing": ["keyword penting di JD tapi tidak ada di CV"],
+  "strengths": ["kekuatan CV dalam konteks JD ini"],
+  "improvements": ["saran konkret untuk memperbaiki CV agar lebih cocok dengan JD ini"],
+  "format_tips": ["saran format/struktur CV jika ada"]
 }`;
 
-    try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 1200
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        if (res.status === 401) throw new Error('API Key salah atau sudah expired. Cek lagi key-nya ya.');
-        throw new Error(err?.error?.message || 'Request gagal: ' + res.status);
-      }
-
-      const data = await res.json();
-      let content = data.choices?.[0]?.message?.content || '';
-
-      // Strip markdown code fences if present
-      content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-
-      let result;
-      try {
-        result = JSON.parse(content);
-      } catch(e) {
-        // Try extracting JSON from content
-        const match = content.match(/\{[\s\S]*\}/);
-        if (match) result = JSON.parse(match[0]);
-        else throw new Error('Format respons tidak valid. Coba lagi.');
-      }
-
-      renderResult(result);
-
-    } catch(err) {
-      showError(err.message || 'Terjadi kesalahan. Coba lagi.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function setLoading(on) {
-    const btn = document.getElementById('analyzeBtn');
-    const content = document.getElementById('btnContent');
-    btn.disabled = on;
-    if (on) {
-      content.innerHTML = '<div class="spinner"></div> Menganalisis...';
-    } else {
-      content.textContent = 'Analisis CV Sekarang';
-    }
-  }
-
-  function showError(msg) {
-    const box = document.getElementById('errorBox');
-    box.textContent = '⚠️ ' + msg;
-    box.hidden = false;
-  }
-
-  function scoreColor(s) {
-    if (s >= 75) return 'var(--good)';
-    if (s >= 50) return 'var(--warn)';
-    return 'var(--danger)';
-  }
-
-  function renderResult(r) {
-    const score = Math.min(100, Math.max(0, r.score || 0));
-    const circumference = 238.76;
-    const offset = circumference - (score / 100) * circumference;
-
-    // Animate ring
-    const ring = document.getElementById('ringFill');
-    ring.style.stroke = scoreColor(score);
-    requestAnimationFrame(() => {
-      ring.style.strokeDashoffset = offset;
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3-70b-8192',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 1500
+      })
     });
 
-    document.getElementById('scoreNum').textContent = score;
-    document.getElementById('scoreNum').style.color = scoreColor(score);
-    document.getElementById('scoreVerdict').textContent = r.verdict || '';
-    document.getElementById('scoreDesc').textContent = r.summary || '';
-
-    // Build sections
-    const container = document.getElementById('resultSections');
-    container.innerHTML = '';
-
-    // Keywords found
-    if ((r.keywords_found || []).length > 0) {
-      container.appendChild(makeSection(
-        'good', '✓', 'Keyword ATS yang sudah ada',
-        chipList(r.keywords_found, 'found')
-      ));
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) throw new Error('API Key salah atau expired. Cek kembali.');
+      throw new Error(err?.error?.message || 'Request gagal: ' + res.status);
     }
 
-    // Keywords missing
-    if ((r.keywords_missing || []).length > 0) {
-      container.appendChild(makeSection(
-        'danger', '✗', 'Keyword yang belum ada di CV',
-        chipList(r.keywords_missing, 'missing')
-      ));
+    const data = await res.json();
+    let raw = data.choices?.[0]?.message?.content || '';
+    raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+    let r;
+    try { r = JSON.parse(raw); }
+    catch(e) {
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (m) r = JSON.parse(m[0]);
+      else throw new Error('Respons AI tidak valid. Coba lagi.');
     }
 
-    // Strengths
-    if ((r.strengths || []).length > 0) {
-      container.appendChild(makeSection(
-        'good', '★', 'Kekuatan CV kamu',
-        listEl(r.strengths)
-      ));
-    }
+    renderResult(r);
 
-    // Improvements
-    if ((r.improvements || []).length > 0) {
-      container.appendChild(makeSection(
-        'warn', '↑', 'Saran perbaikan',
-        listEl(r.improvements)
-      ));
-    }
-
-    // Format issues
-    if ((r.format_issues || []).length > 0) {
-      container.appendChild(makeSection(
-        'info', '!', 'Catatan format',
-        listEl(r.format_issues)
-      ));
-    }
-
-    document.getElementById('resultWrap').hidden = false;
-    document.getElementById('resultWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch(err) {
+    showErr(err.message || 'Terjadi kesalahan. Coba lagi.');
+  } finally {
+    setLoading(false);
   }
+}
 
-  function makeSection(type, icon, title, bodyEl) {
-    const wrap = document.createElement('div');
-    wrap.className = 'result-section';
+function setLoading(on) {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = on;
+  document.getElementById('btnText').innerHTML = on
+    ? '<div class="spinner"></div> Menganalisis CV...'
+    : 'Analisis CV Sekarang';
+}
 
-    const head = document.createElement('div');
-    head.className = 'result-section-head';
-    head.innerHTML = `
-      <span class="section-icon ${type}">${icon}</span>
-      <span class="section-title">${title}</span>
-      <span class="section-chevron open">▼</span>
-    `;
+function scoreColor(s) {
+  if (s >= 75) return '#027A48';
+  if (s >= 50) return '#B54708';
+  return '#B42318';
+}
 
-    const body = document.createElement('div');
-    body.className = 'result-section-body open';
-    body.appendChild(bodyEl);
+function renderResult(r) {
+  const score = Math.min(100, Math.max(0, r.score || 0));
+  const C = 232.48;
+  const offset = C - (score / 100) * C;
+  const color = scoreColor(score);
 
-    head.addEventListener('click', () => {
-      const chevron = head.querySelector('.section-chevron');
-      body.classList.toggle('open');
-      chevron.classList.toggle('open');
-    });
+  const ring = document.getElementById('ringFill');
+  ring.style.stroke = color;
+  requestAnimationFrame(() => { ring.style.strokeDashoffset = offset; });
 
-    wrap.appendChild(head);
-    wrap.appendChild(body);
-    return wrap;
-  }
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('scoreNum').style.color = color;
+  document.getElementById('scoreVerdict').textContent = r.verdict || '';
+  document.getElementById('scoreVerdict').style.color = color;
+  document.getElementById('scoreDesc').textContent = r.summary || '';
 
-  function chipList(items, type) {
-    const div = document.createElement('div');
-    div.className = 'chip-list';
-    items.forEach(item => {
-      const chip = document.createElement('span');
-      chip.className = 'chip ' + type;
-      chip.textContent = item;
-      div.appendChild(chip);
-    });
-    return div;
-  }
+  const kf = r.keywords_found || [];
+  const km = r.keywords_missing || [];
+  const sug = r.improvements || [];
+  document.getElementById('statFound').textContent = kf.length;
+  document.getElementById('statMiss').textContent = km.length;
+  document.getElementById('statSug').textContent = sug.length;
 
-  function listEl(items) {
-    const ul = document.createElement('ul');
-    ul.className = 'sug-list';
-    items.forEach(item => {
-      const li = document.createElement('li');
-      li.textContent = item;
-      ul.appendChild(li);
-    });
-    return ul;
-  }
+  const wrap = document.getElementById('sectionsWrap');
+  wrap.innerHTML = '';
+
+  if (kf.length) wrap.appendChild(mkSection('pill-good', '✓ Keyword Cocok (' + kf.length + ')', makeChips(kf, 'chip-found'), true));
+  if (km.length) wrap.appendChild(mkSection('pill-danger', '✗ Keyword Kurang (' + km.length + ')', makeChips(km, 'chip-miss'), true));
+  if ((r.strengths||[]).length) wrap.appendChild(mkSection('pill-good', '★ Kekuatan CV', makeList(r.strengths, 'good-list'), true));
+  if (sug.length) wrap.appendChild(mkSection('pill-warn', '↑ Saran Perbaikan (' + sug.length + ')', makeList(sug, 'warn-list'), true));
+  if ((r.format_tips||[]).length) wrap.appendChild(mkSection('pill-info', '◈ Tips Format', makeList(r.format_tips, ''), false));
+
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function mkSection(pillClass, title, bodyEl, openDefault) {
+  const wrap = document.createElement('div');
+  wrap.className = 'section-card';
+
+  const head = document.createElement('div');
+  head.className = 'section-head';
+  head.innerHTML = `<span class="section-pill ${pillClass}">${title}</span><span class="chevron ${openDefault ? 'up' : ''}">▼</span>`;
+
+  const body = document.createElement('div');
+  body.className = 'section-body' + (openDefault ? ' open' : '');
+  body.appendChild(bodyEl);
+
+  head.addEventListener('click', () => {
+    body.classList.toggle('open');
+    head.querySelector('.chevron').classList.toggle('up');
+  });
+
+  wrap.appendChild(head);
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function makeChips(items, cls) {
+  const d = document.createElement('div');
+  d.className = 'chip-wrap';
+  items.forEach(t => {
+    const s = document.createElement('span');
+    s.className = 'chip ' + cls;
+    s.textContent = t;
+    d.appendChild(s);
+  });
+  return d;
+}
+
+function makeList(items, cls) {
+  const ul = document.createElement('ul');
+  ul.className = 'sug-list ' + cls;
+  items.forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = t;
+    ul.appendChild(li);
+  });
+  return ul;
+}
+
+function showErr(msg) {
+  const b = document.getElementById('errBox');
+  b.textContent = '⚠ ' + msg;
+  b.classList.add('show');
+}
+function hideErr() {
+  document.getElementById('errBox').classList.remove('show');
+}
 </script>
+</body>
+</html>
