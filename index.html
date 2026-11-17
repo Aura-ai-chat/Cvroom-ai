@@ -1,0 +1,1071 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>CV ATS Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+
+<style>
+  /* Layout: split-panel on desktop, stacked on mobile */
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E2E6EC;
+    --fg: #1A1D23;
+    --fg-muted: #6B7280;
+    --accent: #2563EB;
+    --accent-light: #EEF3FF;
+    --accent-hover: #1D4ED8;
+    --good: #16A34A;
+    --good-bg: #F0FDF4;
+    --warn: #D97706;
+    --warn-bg: #FFFBEB;
+    --danger: #DC2626;
+    --danger-bg: #FEF2F2;
+    --radius: 10px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1117;
+      --surface: #1A1D26;
+      --border: #2A2F3D;
+      --fg: #E8EBF0;
+      --fg-muted: #8B92A3;
+      --accent: #3B82F6;
+      --accent-light: #1A2340;
+      --accent-hover: #60A5FA;
+      --good: #22C55E;
+      --good-bg: #0A1F12;
+      --warn: #FBBF24;
+      --warn-bg: #1C1500;
+      --danger: #F87171;
+      --danger-bg: #200A0A;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0F1117;
+    --surface: #1A1D26;
+    --border: #2A2F3D;
+    --fg: #E8EBF0;
+    --fg-muted: #8B92A3;
+    --accent: #3B82F6;
+    --accent-light: #1A2340;
+    --accent-hover: #60A5FA;
+    --good: #22C55E;
+    --good-bg: #0A1F12;
+    --warn: #FBBF24;
+    --warn-bg: #1C1500;
+    --danger: #F87171;
+    --danger-bg: #200A0A;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    min-height: 100%;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .app-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-inline: max(16px, env(safe-area-inset-left, 0px));
+    padding-block: 32px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { width: 20px; height: 20px; }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.1;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .api-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--fg-muted);
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    transition: border-color 0.15s;
+  }
+
+  .api-badge:hover { border-color: var(--accent); }
+
+  .api-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    flex-shrink: 0;
+  }
+
+  .api-dot.connected { background: var(--good); }
+
+  /* Main layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-muted);
+  }
+
+  .char-count {
+    font-size: 12px;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+  }
+
+  textarea {
+    width: 100%;
+    display: block;
+    padding: 16px 18px;
+    border: none;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    resize: vertical;
+    min-height: 220px;
+    outline: none;
+  }
+
+  textarea::placeholder { color: var(--fg-muted); opacity: 0.7; }
+
+  /* PDF Upload zone */
+  .upload-zone {
+    margin: 16px 18px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .upload-icon { font-size: 28px; line-height: 1; }
+
+  .upload-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .upload-hint { font-size: 12px; color: var(--fg-muted); }
+  .upload-zone input[type=file] { display: none; }
+
+  .pdf-preview {
+    margin: 0 18px 16px;
+    background: var(--bg);
+    border-radius: 7px;
+    padding: 10px 12px;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .pdf-preview.visible { display: flex; }
+
+  .pdf-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .pdf-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--fg-muted);
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  .pdf-remove:hover { color: var(--danger); }
+
+  .pdf-status {
+    font-size: 11px;
+    color: var(--good);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  .pdf-status.loading { color: var(--warn); }
+
+  /* API key section */
+  .api-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .api-section.open { display: block; }
+
+  .api-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 0;
+  }
+
+  .api-row input:focus { border-color: var(--accent); }
+
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+
+  .btn-sm:hover { background: var(--accent-hover); }
+
+  .api-hint {
+    font-size: 12px;
+    color: var(--fg-muted);
+    margin-top: 8px;
+  }
+
+  /* Analyze button */
+  .analyze-row {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .btn-analyze {
+    padding: 13px 36px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: var(--sans);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.2px;
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+  }
+
+  .btn-analyze:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-analyze:active:not(:disabled) { transform: scale(0.98); }
+  .btn-analyze:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Result area */
+  .result-wrap {
+    margin-top: 24px;
+  }
+
+  .result-wrap[hidden] { display: none; }
+
+  /* Score ring */
+  .score-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .score-ring {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+  }
+
+  .score-ring svg { width: 90px; height: 90px; transform: rotate(-90deg); }
+
+  .score-ring-track { fill: none; stroke: var(--border); stroke-width: 7; }
+  .score-ring-fill {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.9s cubic-bezier(.4,0,.2,1), stroke 0.3s;
+  }
+
+  .score-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-num {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-pct {
+    font-size: 11px;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+  }
+
+  .score-meta { flex: 1; min-width: 0; }
+
+  .score-verdict {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .score-desc {
+    font-size: 13px;
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+
+  /* Sections */
+  .result-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+
+  .result-section-head {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .section-icon.good { background: var(--good-bg); color: var(--good); }
+  .section-icon.warn { background: var(--warn-bg); color: var(--warn); }
+  .section-icon.danger { background: var(--danger-bg); color: var(--danger); }
+  .section-icon.info { background: var(--accent-light); color: var(--accent); }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .section-chevron {
+    color: var(--fg-muted);
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .section-chevron.open { transform: rotate(180deg); }
+
+  .result-section-body {
+    padding: 0 16px 14px;
+    display: none;
+  }
+
+  .result-section-body.open { display: block; }
+
+  /* Tags / chips */
+  .chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .chip {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--mono);
+  }
+
+  .chip.found { background: var(--good-bg); color: var(--good); }
+  .chip.missing { background: var(--danger-bg); color: var(--danger); }
+
+  /* Suggestions list */
+  .sug-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .sug-list li {
+    padding: 9px 12px;
+    background: var(--bg);
+    border-radius: 7px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* Loading */
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--fg-muted);
+    text-align: center;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .loading-spin {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  /* Error */
+  .error-box {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  .error-box[hidden] { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner, .loading-spin { animation: none; }
+    .score-ring-fill { transition: none; }
+  }
+</style>
+
+<div class="app-shell">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 5h12M4 10h8M4 15h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="16" cy="13" r="3" fill="#fff" opacity="0.9"/>
+          <path d="M14.5 13l1 1 2-2" stroke="#2563EB" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">CV ATS Checker</div>
+        <div class="logo-sub">Powered by Groq AI</div>
+      </div>
+    </div>
+    <button class="api-badge" id="apiToggle" onclick="toggleApiSection()">
+      <span class="api-dot" id="apiDot"></span>
+      <span id="apiStatus">Belum ada API Key</span>
+    </button>
+  </header>
+
+  <!-- API key section -->
+  <div class="api-section" id="apiSection">
+    <label for="apiKeyInput">Groq API Key</label>
+    <div class="api-row">
+      <input
+        type="password"
+        id="apiKeyInput"
+        placeholder="gsk_..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="btn-sm" onclick="saveApiKey()">Simpan</button>
+    </div>
+    <p class="api-hint">Key tersimpan di browser kamu aja, tidak dikirim ke mana pun kecuali Groq.</p>
+  </div>
+
+  <!-- Input grid -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Upload CV (PDF)</span>
+        <span class="char-count" id="cvCount">Belum ada file</span>
+      </div>
+      <label class="upload-zone" id="uploadZone"
+        ondragover="handleDragOver(event)"
+        ondragleave="handleDragLeave(event)"
+        ondrop="handleDrop(event)">
+        <input type="file" id="pdfInput" accept=".pdf" onchange="handleFileSelect(event)" style="display:none">
+        <div class="upload-icon">📄</div>
+        <div class="upload-label">Klik atau drag & drop PDF CV kamu</div>
+        <div class="upload-hint">Format: PDF • Maks. 10MB</div>
+      </label>
+      <div class="pdf-preview" id="pdfPreview">
+        <span>📄</span>
+        <span class="pdf-name" id="pdfName"></span>
+        <span class="pdf-status" id="pdfStatus">✓ Terbaca</span>
+        <button class="pdf-remove" onclick="removeFile()" title="Hapus file">✕</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Deskripsi pekerjaan (Job Desc)</span>
+        <span class="char-count" id="jdCount">0 kata</span>
+      </div>
+      <textarea
+        id="jdText"
+        placeholder="Paste job description yang kamu lamar di sini...&#10;&#10;Contoh:&#10;Kami mencari Warehouse Operator yang berpengalaman dalam:&#10;- Pengelolaan gudang&#10;- Sortir barang&#10;- ..."
+        oninput="updateCount('jdText','jdCount')"
+      ></textarea>
+    </div>
+  </div>
+
+  <div class="analyze-row">
+    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
+      <span id="btnContent">Analisis CV Sekarang</span>
+    </button>
+  </div>
+
+  <div class="error-box" id="errorBox" hidden></div>
+
+  <!-- Result area -->
+  <div class="result-wrap" id="resultWrap" hidden>
+    <!-- Score -->
+    <div class="score-block" id="scoreBlock">
+      <div class="score-ring">
+        <svg viewBox="0 0 90 90">
+          <circle class="score-ring-track" cx="45" cy="45" r="38"/>
+          <circle class="score-ring-fill" id="ringFill" cx="45" cy="45" r="38"
+            stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+        </svg>
+        <div class="score-label">
+          <span class="score-num" id="scoreNum">0</span>
+          <span class="score-pct">/ 100</span>
+        </div>
+      </div>
+      <div class="score-meta">
+        <div class="score-verdict" id="scoreVerdict"></div>
+        <div class="score-desc" id="scoreDesc"></div>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div id="resultSections"></div>
+  </div>
+</div>
+
+<script>
+  // ---- PDF.js ----
+  const pdfjsScript = document.createElement('script');
+  pdfjsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  document.head.appendChild(pdfjsScript);
+  pdfjsScript.onload = () => {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  };
+
+  // ---- State ----
+  let apiKey = '';
+  let cvExtractedText = '';
+
+  try {
+    apiKey = localStorage.getItem('groq_api_key') || '';
+  } catch(e) {}
+
+  updateApiUI();
+
+  function updateApiUI() {
+    const dot = document.getElementById('apiDot');
+    const status = document.getElementById('apiStatus');
+    if (apiKey) {
+      dot.className = 'api-dot connected';
+      status.textContent = 'API Key tersimpan ✓';
+    } else {
+      dot.className = 'api-dot';
+      status.textContent = 'Belum ada API Key';
+    }
+  }
+
+  function toggleApiSection() {
+    const sec = document.getElementById('apiSection');
+    sec.classList.toggle('open');
+    if (sec.classList.contains('open') && apiKey) {
+      document.getElementById('apiKeyInput').value = apiKey;
+    }
+  }
+
+  function saveApiKey() {
+    const input = document.getElementById('apiKeyInput').value.trim();
+    if (!input) return;
+    apiKey = input;
+    try { localStorage.setItem('groq_api_key', apiKey); } catch(e) {}
+    updateApiUI();
+    document.getElementById('apiSection').classList.remove('open');
+  }
+
+  // ---- PDF Upload handlers ----
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.add('drag-over');
+  }
+
+  function handleDragLeave(e) {
+    document.getElementById('uploadZone').classList.remove('drag-over');
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') processFile(file);
+    else showError('File harus berformat PDF ya.');
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  }
+
+  function removeFile() {
+    cvExtractedText = '';
+    document.getElementById('pdfInput').value = '';
+    document.getElementById('pdfPreview').classList.remove('visible');
+    document.getElementById('uploadZone').style.display = '';
+    document.getElementById('cvCount').textContent = 'Belum ada file';
+    document.getElementById('errorBox').hidden = true;
+  }
+
+  async function processFile(file) {
+    if (file.size > 10 * 1024 * 1024) {
+      showError('File terlalu besar. Maks. 10MB ya.');
+      return;
+    }
+
+    const nameEl = document.getElementById('pdfName');
+    const statusEl = document.getElementById('pdfStatus');
+    const preview = document.getElementById('pdfPreview');
+    const zone = document.getElementById('uploadZone');
+    const countEl = document.getElementById('cvCount');
+
+    nameEl.textContent = file.name;
+    statusEl.textContent = 'Membaca...';
+    statusEl.className = 'pdf-status loading';
+    preview.classList.add('visible');
+    zone.style.display = 'none';
+    document.getElementById('errorBox').hidden = true;
+
+    try {
+      if (!window.pdfjsLib) throw new Error('PDF reader belum siap, coba lagi sebentar.');
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const pageText = content.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+
+      cvExtractedText = fullText.trim();
+
+      if (!cvExtractedText) throw new Error('PDF ini sepertinya berisi gambar/scan, bukan teks. Coba PDF yang bisa di-select teksnya.');
+
+      const words = cvExtractedText.split(/\s+/).length;
+      countEl.textContent = words + ' kata terbaca';
+      statusEl.textContent = '✓ Terbaca (' + pdf.numPages + ' hal.)';
+      statusEl.className = 'pdf-status';
+
+    } catch(err) {
+      cvExtractedText = '';
+      statusEl.textContent = '✗ Gagal';
+      statusEl.className = 'pdf-status';
+      statusEl.style.color = 'var(--danger)';
+      countEl.textContent = 'Gagal dibaca';
+      showError(err.message || 'Gagal membaca PDF. Coba lagi.');
+    }
+  }
+
+  function updateCount(textareaId, countId) {
+    const val = document.getElementById(textareaId).value.trim();
+    const words = val ? val.split(/\s+/).length : 0;
+    document.getElementById(countId).textContent = words + ' kata';
+  }
+
+  // ---- Analyze ----
+  async function analyze() {
+    const cv = cvExtractedText;
+    const jd = document.getElementById('jdText').value.trim();
+    const errBox = document.getElementById('errorBox');
+
+    errBox.hidden = true;
+
+    if (!apiKey) {
+      toggleApiSection();
+      showError('Masukkan Groq API Key dulu ya.');
+      return;
+    }
+    if (!cv) { showError('Upload PDF CV kamu dulu ya.'); return; }
+    if (!jd) { showError('Job description-nya belum diisi.'); return; }
+
+    setLoading(true);
+    document.getElementById('resultWrap').hidden = true;
+
+    const prompt = `Kamu adalah pakar ATS (Applicant Tracking System) dan rekrutmen profesional. Analisis CV berikut terhadap job description yang diberikan.
+
+PENTING: Balas HANYA dengan JSON valid, tanpa teks lain sebelum atau sesudah JSON.
+
+CV:
+${cv}
+
+JOB DESCRIPTION:
+${jd}
+
+Analisis dan balas dengan format JSON berikut (HANYA JSON, tidak ada markdown, tidak ada penjelasan di luar JSON):
+{
+  "score": <angka 0-100>,
+  "verdict": "<Sangat Kuat | Kuat | Cukup | Perlu Perbaikan | Belum Siap>",
+  "summary": "<ringkasan singkat 1-2 kalimat dalam bahasa Indonesia>",
+  "keywords_found": ["<keyword1>", "<keyword2>"],
+  "keywords_missing": ["<keyword1>", "<keyword2>"],
+  "strengths": ["<poin kekuatan 1>", "<poin kekuatan 2>", "<poin kekuatan 3>"],
+  "improvements": ["<saran perbaikan 1>", "<saran perbaikan 2>", "<saran perbaikan 3>", "<saran perbaikan 4>"],
+  "format_issues": ["<masalah format 1 jika ada>"]
+}`;
+
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3,
+          max_tokens: 1200
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        if (res.status === 401) throw new Error('API Key salah atau sudah expired. Cek lagi key-nya ya.');
+        throw new Error(err?.error?.message || 'Request gagal: ' + res.status);
+      }
+
+      const data = await res.json();
+      let content = data.choices?.[0]?.message?.content || '';
+
+      // Strip markdown code fences if present
+      content = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+      let result;
+      try {
+        result = JSON.parse(content);
+      } catch(e) {
+        // Try extracting JSON from content
+        const match = content.match(/\{[\s\S]*\}/);
+        if (match) result = JSON.parse(match[0]);
+        else throw new Error('Format respons tidak valid. Coba lagi.');
+      }
+
+      renderResult(result);
+
+    } catch(err) {
+      showError(err.message || 'Terjadi kesalahan. Coba lagi.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('analyzeBtn');
+    const content = document.getElementById('btnContent');
+    btn.disabled = on;
+    if (on) {
+      content.innerHTML = '<div class="spinner"></div> Menganalisis...';
+    } else {
+      content.textContent = 'Analisis CV Sekarang';
+    }
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + msg;
+    box.hidden = false;
+  }
+
+  function scoreColor(s) {
+    if (s >= 75) return 'var(--good)';
+    if (s >= 50) return 'var(--warn)';
+    return 'var(--danger)';
+  }
+
+  function renderResult(r) {
+    const score = Math.min(100, Math.max(0, r.score || 0));
+    const circumference = 238.76;
+    const offset = circumference - (score / 100) * circumference;
+
+    // Animate ring
+    const ring = document.getElementById('ringFill');
+    ring.style.stroke = scoreColor(score);
+    requestAnimationFrame(() => {
+      ring.style.strokeDashoffset = offset;
+    });
+
+    document.getElementById('scoreNum').textContent = score;
+    document.getElementById('scoreNum').style.color = scoreColor(score);
+    document.getElementById('scoreVerdict').textContent = r.verdict || '';
+    document.getElementById('scoreDesc').textContent = r.summary || '';
+
+    // Build sections
+    const container = document.getElementById('resultSections');
+    container.innerHTML = '';
+
+    // Keywords found
+    if ((r.keywords_found || []).length > 0) {
+      container.appendChild(makeSection(
+        'good', '✓', 'Keyword ATS yang sudah ada',
+        chipList(r.keywords_found, 'found')
+      ));
+    }
+
+    // Keywords missing
+    if ((r.keywords_missing || []).length > 0) {
+      container.appendChild(makeSection(
+        'danger', '✗', 'Keyword yang belum ada di CV',
+        chipList(r.keywords_missing, 'missing')
+      ));
+    }
+
+    // Strengths
+    if ((r.strengths || []).length > 0) {
+      container.appendChild(makeSection(
+        'good', '★', 'Kekuatan CV kamu',
+        listEl(r.strengths)
+      ));
+    }
+
+    // Improvements
+    if ((r.improvements || []).length > 0) {
+      container.appendChild(makeSection(
+        'warn', '↑', 'Saran perbaikan',
+        listEl(r.improvements)
+      ));
+    }
+
+    // Format issues
+    if ((r.format_issues || []).length > 0) {
+      container.appendChild(makeSection(
+        'info', '!', 'Catatan format',
+        listEl(r.format_issues)
+      ));
+    }
+
+    document.getElementById('resultWrap').hidden = false;
+    document.getElementById('resultWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function makeSection(type, icon, title, bodyEl) {
+    const wrap = document.createElement('div');
+    wrap.className = 'result-section';
+
+    const head = document.createElement('div');
+    head.className = 'result-section-head';
+    head.innerHTML = `
+      <span class="section-icon ${type}">${icon}</span>
+      <span class="section-title">${title}</span>
+      <span class="section-chevron open">▼</span>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'result-section-body open';
+    body.appendChild(bodyEl);
+
+    head.addEventListener('click', () => {
+      const chevron = head.querySelector('.section-chevron');
+      body.classList.toggle('open');
+      chevron.classList.toggle('open');
+    });
+
+    wrap.appendChild(head);
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  function chipList(items, type) {
+    const div = document.createElement('div');
+    div.className = 'chip-list';
+    items.forEach(item => {
+      const chip = document.createElement('span');
+      chip.className = 'chip ' + type;
+      chip.textContent = item;
+      div.appendChild(chip);
+    });
+    return div;
+  }
+
+  function listEl(items) {
+    const ul = document.createElement('ul');
+    ul.className = 'sug-list';
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+</script>
