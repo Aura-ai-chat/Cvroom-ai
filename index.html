@@ -3,924 +3,520 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CVRoom AI — Cek CV Kamu Lolos ATS</title>
+<title>CVRoom AI — Analisis CV & ATS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: #F5F7FA;
-  --white: #FFFFFF;
-  --border: #E4E7EC;
-  --fg: #101828;
-  --fg-muted: #667085;
-  --accent: #4F46E5;
-  --accent-hover: #4338CA;
-  --accent-light: #EEF2FF;
-  --good: #027A48;
-  --good-bg: #ECFDF3;
-  --good-border: #ABEFC6;
-  --warn: #B54708;
-  --warn-bg: #FFFAEB;
-  --warn-border: #FEDF89;
-  --danger: #B42318;
-  --danger-bg: #FEF3F2;
-  --danger-border: #FECDCA;
-  --sans: 'Inter', system-ui, sans-serif;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F7FA;--white:#FFFFFF;--border:#E4E7EC;
+  --fg:#101828;--muted:#667085;
+  --accent:#4F46E5;--accent-h:#4338CA;--accent-l:#EEF2FF;
+  --good:#027A48;--good-bg:#ECFDF3;--good-b:#ABEFC6;
+  --warn:#B54708;--warn-bg:#FFFAEB;--warn-b:#FEDF89;
+  --bad:#B42318;--bad-bg:#FEF3F2;--bad-b:#FECDCA;
+  --sans:'Inter',system-ui,sans-serif;
 }
-
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--fg);
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.6;
-}
+body{font-family:var(--sans);background:var(--bg);color:var(--fg);min-height:100vh;font-size:14px;line-height:1.6}
 
 /* NAV */
-.nav {
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
+.nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--fg);letter-spacing:-.3px}
+.logo-box{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:800}
+.btn-api{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:var(--white);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--sans);transition:border-color .15s}
+.btn-api:hover{border-color:var(--accent);color:var(--accent)}
+.dot{width:7px;height:7px;border-radius:50%;background:#D0D5DD;flex-shrink:0}
+.dot.on{background:#12B76A}
 
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--fg);
-  text-decoration: none;
-}
-
-.nav-logo-dot {
-  width: 28px;
-  height: 28px;
-  background: var(--accent);
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-api {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--white);
-  color: var(--fg-muted);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: var(--sans);
-  transition: border-color 0.15s;
-}
-.btn-api:hover { border-color: var(--accent); color: var(--accent); }
-
-.api-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #D0D5DD;
-  flex-shrink: 0;
-}
-.api-dot.on { background: #12B76A; }
+/* PAGE */
+.page{max-width:520px;margin:0 auto;padding:24px 16px 60px}
 
 /* HERO */
-.hero {
-  text-align: center;
-  padding: 48px 24px 32px;
-  max-width: 600px;
-  margin: 0 auto;
-}
+.hero{text-align:center;padding:28px 0 24px}
+.badge{display:inline-flex;align-items:center;gap:5px;background:var(--accent-l);color:var(--accent);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:12px;letter-spacing:.02em}
+.hero h1{font-size:26px;font-weight:800;line-height:1.25;letter-spacing:-.5px;margin-bottom:8px}
+.hero p{font-size:13px;color:var(--muted);line-height:1.6}
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--accent-light);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin-bottom: 16px;
-  letter-spacing: 0.01em;
-}
+/* UPLOAD CARD */
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.step-num{width:20px;height:20px;background:var(--accent);color:white;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-label{font-size:13px;font-weight:600}
+.card-meta{font-size:12px;color:var(--muted);margin-left:auto}
 
-.hero h1 {
-  font-size: 32px;
-  font-weight: 800;
-  line-height: 1.2;
-  color: var(--fg);
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
-}
+.upload-lbl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 20px;cursor:pointer;border:2px dashed var(--border);border-radius:8px;margin:14px;text-align:center;transition:border-color .15s,background .15s}
+.upload-lbl:hover,.upload-lbl.drag{border-color:var(--accent);background:var(--accent-l)}
+.upload-lbl input{display:none}
+.upload-ico{width:40px;height:40px;border:1px solid var(--border);border-radius:9px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:18px}
+.upload-t{font-size:13px;font-weight:600}
+.upload-s{font-size:12px;color:var(--muted)}
+.fake-btn{background:var(--accent-l);color:var(--accent);border:1px solid #C7D2FE;border-radius:7px;padding:5px 14px;font-size:12px;font-weight:600}
 
-.hero p {
-  font-size: 15px;
-  color: var(--fg-muted);
-  line-height: 1.65;
-}
-
-/* MAIN CARD */
-.main-wrap {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 16px 60px;
-}
-
-.card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-
-.card-head {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fg);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-title-num {
-  width: 20px; height: 20px;
-  background: var(--accent);
-  color: white;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.card-hint {
-  font-size: 12px;
-  color: var(--fg-muted);
-}
-
-/* UPLOAD ZONE */
-.upload-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 36px 24px;
-  cursor: pointer;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  margin: 16px;
-  transition: border-color 0.15s, background 0.15s;
-  text-align: center;
-  min-height: 150px;
-}
-.upload-label:hover, .upload-label.drag { border-color: var(--accent); background: var(--accent-light); }
-.upload-label input { display: none; }
-
-.upload-icon-wrap {
-  width: 44px; height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.upload-title { font-size: 14px; font-weight: 600; color: var(--fg); }
-.upload-sub { font-size: 12px; color: var(--fg-muted); }
-
-.upload-btn-fake {
-  background: var(--accent-light);
-  color: var(--accent);
-  border: 1px solid #C7D2FE;
-  border-radius: 7px;
-  padding: 6px 16px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* File preview */
-.file-preview {
-  display: none;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: var(--good-bg);
-  border-top: 1px solid var(--good-border);
-}
-.file-preview.show { display: flex; }
-.file-icon { font-size: 22px; }
-.file-info { flex: 1; min-width: 0; }
-.file-name { font-size: 13px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.file-meta { font-size: 12px; color: var(--good); }
-.file-remove { background: none; border: none; cursor: pointer; color: var(--fg-muted); font-size: 18px; padding: 0 4px; }
-.file-remove:hover { color: var(--danger); }
-
-/* TEXTAREA */
-textarea {
-  width: 100%;
-  display: block;
-  padding: 16px 20px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--fg);
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.65;
-  resize: vertical;
-  min-height: 180px;
-}
-textarea::placeholder { color: #B0B9C8; }
-
-/* API MODAL */
-.api-modal-bg {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(16,24,40,0.5);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.api-modal-bg.open { display: flex; }
-.api-modal {
-  background: var(--white);
-  border-radius: 16px;
-  padding: 28px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-}
-.api-modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-.api-modal p { font-size: 13px; color: var(--fg-muted); margin-bottom: 20px; line-height: 1.6; }
-.api-modal label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; }
-.api-modal input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: var(--sans);
-  outline: none;
-  margin-bottom: 8px;
-  color: var(--fg);
-}
-.api-modal input:focus { border-color: var(--accent); }
-.api-modal-hint { font-size: 12px; color: var(--fg-muted); margin-bottom: 20px; }
-.api-modal-row { display: flex; gap: 10px; }
-.btn-cancel {
-  flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
-  background: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans);
-}
-.btn-save {
-  flex: 1; padding: 10px; background: var(--accent); color: white; border: none;
-  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--sans);
-}
-.btn-save:hover { background: var(--accent-hover); }
+.file-ok{display:none;align-items:center;gap:10px;padding:10px 16px;background:var(--good-bg);border-top:1px solid var(--good-b)}
+.file-ok.show{display:flex}
+.file-name{flex:1;font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-status{font-size:11px;color:var(--good);white-space:nowrap}
+.file-rm{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1}
+.file-rm:hover{color:var(--bad)}
 
 /* ANALYZE BTN */
-.analyze-wrap { padding: 0 0 8px; }
-.btn-analyze {
-  width: 100%;
-  padding: 14px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  font-family: var(--sans);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: background 0.15s, transform 0.1s;
-  letter-spacing: -0.1px;
-}
-.btn-analyze:hover:not(:disabled) { background: var(--accent-hover); }
-.btn-analyze:active:not(:disabled) { transform: scale(0.99); }
-.btn-analyze:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-go{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s;letter-spacing:-.1px;margin-bottom:10px}
+.btn-go:hover:not(:disabled){background:var(--accent-h)}
+.btn-go:active:not(:disabled){transform:scale(.99)}
+.btn-go:disabled{opacity:.55;cursor:not-allowed}
+.spin{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-.spinner {
-  width: 18px; height: 18px;
-  border: 2.5px solid rgba(255,255,255,0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+.err{background:var(--bad-bg);border:1px solid var(--bad-b);color:var(--bad);border-radius:8px;padding:11px 14px;font-size:13px;display:none;margin-bottom:10px}
+.err.show{display:block}
 
-/* ERROR */
-.error-box {
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-border);
-  color: var(--danger);
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 13px;
-  margin-top: 12px;
-  display: none;
-}
-.error-box.show { display: block; }
+/* CHAT / RESULT AREA */
+.chat-wrap{display:none}
+.chat-wrap.show{display:block}
 
-/* RESULTS */
-.results { display: none; margin-top: 24px; }
-.results.show { display: block; }
+/* Score */
+.score-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:center;gap:20px;margin-bottom:10px;flex-wrap:wrap}
+.ring-wrap{position:relative;width:84px;height:84px;flex-shrink:0}
+.ring-wrap svg{width:84px;height:84px;transform:rotate(-90deg)}
+.rt{fill:none;stroke:var(--border);stroke-width:7}
+.rf{fill:none;stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)}
+.ring-mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.snum{font-size:22px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.sof{font-size:10px;color:var(--muted)}
+.score-info{flex:1;min-width:0}
+.verdict{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:3px}
+.sdesc{font-size:12px;color:var(--muted);line-height:1.55}
 
-/* SCORE CARD */
-.score-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
+/* Stat pills */
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:10px 14px;flex:1;min-width:80px;text-align:center}
+.stat-n{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat-l{font-size:11px;color:var(--muted);font-weight:500}
 
-.score-ring {
-  position: relative;
-  width: 88px; height: 88px;
-  flex-shrink: 0;
-}
-.score-ring svg { width: 88px; height: 88px; transform: rotate(-90deg); }
-.ring-track { fill: none; stroke: var(--border); stroke-width: 7; }
-.ring-fill {
-  fill: none; stroke-width: 7; stroke-linecap: round;
-  transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);
-}
-.score-label {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-.score-num { font-size: 24px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-.score-of { font-size: 10px; color: var(--fg-muted); font-weight: 500; }
+/* Section accordion */
+.sec{background:var(--white);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden}
+.sec-head{padding:11px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.pill{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.p-good{background:var(--good-bg);color:var(--good)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)}
+.p-blue{background:var(--accent-l);color:var(--accent)}
+.sec-ttl{flex:1;font-size:12px;font-weight:600}
+.chev{font-size:10px;color:var(--muted);transition:transform .2s}
+.chev.up{transform:rotate(180deg)}
+.sec-body{display:none;padding:0 14px 12px}
+.sec-body.open{display:block}
 
-.score-info { flex: 1; min-width: 0; }
-.score-verdict { font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.3px; }
-.score-desc { font-size: 13px; color: var(--fg-muted); line-height: 1.55; }
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.c-good{background:var(--good-bg);color:var(--good);border:1px solid var(--good-b)}
+.c-bad{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad-b)}
 
-/* STAT ROW */
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.stat-box {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  text-align: center;
-}
-.stat-num { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat-label { font-size: 11px; color: var(--fg-muted); font-weight: 500; margin-top: 3px; }
+.ul{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:7px}
+.ul li{padding:9px 12px;background:var(--bg);border-radius:7px;font-size:13px;line-height:1.5;border-left:3px solid var(--accent)}
+.ul.w li{border-left-color:#F79009}
+.ul.g li{border-left-color:#12B76A}
 
-/* SECTION CARDS */
-.section-card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-.section-head {
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  user-select: none;
-}
-.section-pill {
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.pill-good { background: var(--good-bg); color: var(--good); }
-.pill-warn { background: var(--warn-bg); color: var(--warn); }
-.pill-danger { background: var(--danger-bg); color: var(--danger); }
-.pill-info { background: var(--accent-light); color: var(--accent); }
-.section-title-text { flex: 1; font-size: 13px; font-weight: 600; }
-.chevron { font-size: 11px; color: var(--fg-muted); transition: transform 0.2s; }
-.chevron.up { transform: rotate(180deg); }
+/* CHAT */
+.chat-section{margin-top:14px}
+.chat-title{font-size:13px;font-weight:700;color:var(--fg);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chat-title span{background:var(--accent);color:white;border-radius:5px;padding:1px 7px;font-size:11px}
 
-.section-body { display: none; padding: 0 16px 14px; }
-.section-body.open { display: block; }
+.messages{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.msg{padding:11px 14px;border-radius:10px;font-size:13px;line-height:1.6;max-width:92%}
+.msg-ai{background:var(--white);border:1px solid var(--border);align-self:flex-start;border-radius:3px 10px 10px 10px}
+.msg-user{background:var(--accent);color:white;align-self:flex-end;border-radius:10px 3px 10px 10px}
+.msg-ai.typing{color:var(--muted);font-style:italic}
 
-/* CHIPS */
-.chip-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-.chip {
-  padding: 4px 11px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+.chat-input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--sans);outline:none;resize:none;min-height:42px;max-height:120px;color:var(--fg);background:var(--white);transition:border-color .15s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::placeholder{color:#B0B9C8}
+.btn-send{width:40px;height:40px;border-radius:9px;border:none;background:var(--accent);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:background .15s}
+.btn-send:hover:not(:disabled){background:var(--accent-h)}
+.btn-send:disabled{opacity:.5;cursor:not-allowed}
+
+/* API MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(16,24,40,.55);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:5px}
+.modal p{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.modal label{font-size:12px;font-weight:600;display:block;margin-bottom:5px}
+.modal input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--sans);outline:none;margin-bottom:6px;color:var(--fg)}
+.modal input:focus{border-color:var(--accent)}
+.hint{font-size:11px;color:var(--muted);margin-bottom:16px}
+.modal-row{display:flex;gap:8px}
+.btn-cancel{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;background:white;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.btn-save{flex:1;padding:9px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+
+@media(max-width:420px){
+  .hero h1{font-size:22px}
+  .stats{gap:6px}
+  .stat-n{font-size:17px}
 }
-.chip-found { background: var(--good-bg); color: var(--good); border: 1px solid var(--good-border); }
-.chip-miss { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
-
-/* LIST */
-.sug-list { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; gap: 8px; }
-.sug-list li {
-  padding: 10px 14px;
-  background: var(--bg);
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.55;
-  border-left: 3px solid var(--accent);
-}
-.sug-list.warn-list li { border-left-color: #F79009; }
-.sug-list.good-list li { border-left-color: #12B76A; }
-
-@media (max-width: 600px) {
-  .hero h1 { font-size: 24px; }
-  .stat-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat-num { font-size: 18px; }
-  .score-card { gap: 16px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spinner { animation: none; }
-  .ring-fill { transition: none; }
+@media(prefers-reduced-motion:reduce){
+  .spin{animation:none}.rf{transition:none}
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav class="nav">
-  <a class="nav-logo" href="#">
-    <div class="nav-logo-dot">CV</div>
+  <div class="logo">
+    <div class="logo-box">CV</div>
     CVRoom AI
-  </a>
-  <div class="nav-right">
-    <button class="btn-api" onclick="openApiModal()">
-      <span class="api-dot" id="apiDot"></span>
-      <span id="apiLabel">Hubungkan API Key</span>
-    </button>
   </div>
+  <button class="btn-api" onclick="openModal()">
+    <span class="dot" id="dot"></span>
+    <span id="apiLbl">API Key</span>
+  </button>
 </nav>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-badge">✦ AI-Powered ATS Checker</div>
-  <h1>CV kamu siap tembus<br>sistem ATS?</h1>
-  <p>Upload PDF CV kamu, masukkan job description, dan dapatkan analisis lengkap beserta saran perbaikan dalam hitungan detik.</p>
-</div>
+<div class="page">
+  <div class="hero">
+    <div class="badge">✦ AI-Powered ATS Checker</div>
+    <h1>CV kamu siap tembus<br>sistem ATS?</h1>
+    <p>Upload PDF CV kamu, AI akan menganalisis dan tanya beberapa hal untuk hasil yang lebih akurat.</p>
+  </div>
 
-<!-- MAIN -->
-<div class="main-wrap">
-
-  <!-- Step 1: Upload CV -->
+  <!-- Upload -->
   <div class="card">
     <div class="card-head">
-      <div class="card-title">
-        <span class="card-title-num">1</span>
-        Upload CV kamu
-      </div>
-      <span class="card-hint" id="cvWordCount"></span>
+      <span class="step-num">1</span>
+      <span class="card-label">Upload CV kamu (PDF)</span>
+      <span class="card-meta" id="cvMeta"></span>
     </div>
-    <label class="upload-label" id="uploadLabel"
-      ondragover="onDragOver(event)"
-      ondragleave="onDragLeave(event)"
-      ondrop="onDrop(event)">
-      <input type="file" accept=".pdf" id="pdfInput" onchange="onFileSelect(event)">
-      <div class="upload-icon-wrap">📄</div>
-      <div class="upload-title">Klik untuk pilih file, atau drag & drop</div>
-      <div class="upload-sub">PDF • Maks. 10 MB</div>
-      <span class="upload-btn-fake">Pilih File PDF</span>
+    <label class="upload-lbl" id="uploadLbl"
+      ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event)">
+      <input type="file" accept=".pdf" id="pdfIn" onchange="onFile(event)">
+      <div class="upload-ico">📄</div>
+      <div class="upload-t">Klik atau drag & drop file PDF</div>
+      <div class="upload-s">Format PDF • Maks. 10 MB</div>
+      <span class="fake-btn">Pilih File</span>
     </label>
-    <div class="file-preview" id="filePreview">
-      <span class="file-icon">📄</span>
-      <div class="file-info">
-        <div class="file-name" id="fileName"></div>
-        <div class="file-meta" id="fileMeta"></div>
-      </div>
-      <button class="file-remove" onclick="removeFile()" title="Hapus">✕</button>
+    <div class="file-ok" id="fileOk">
+      <span>📄</span>
+      <span class="file-name" id="fName"></span>
+      <span class="file-status" id="fStatus"></span>
+      <button class="file-rm" onclick="rmFile()">✕</button>
     </div>
   </div>
 
-  <!-- Step 2: Job Description -->
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">
-        <span class="card-title-num">2</span>
-        Paste job description yang kamu lamar
-      </div>
-      <span class="card-hint" id="jdCount"></span>
-    </div>
-    <textarea id="jdText"
-      placeholder="Contoh:&#10;Kami mencari Staff Gudang / Warehouse Operator yang berpengalaman di bidang logistik.&#10;&#10;Kualifikasi:&#10;- Pengalaman min. 1 tahun di bidang pergudangan&#10;- Familiar dengan sistem WMS&#10;- Mampu bekerja dalam tim..."
-      oninput="countWords(this,'jdCount')"></textarea>
-  </div>
+  <button class="btn-go" id="goBtn" onclick="startAnalysis()">
+    <span id="goTxt">Analisis CV Sekarang →</span>
+  </button>
 
-  <!-- Analyze -->
-  <div class="analyze-wrap">
-    <button class="btn-analyze" id="analyzeBtn" onclick="analyze()">
-      <span id="btnText">Analisis CV Sekarang</span>
-    </button>
-  </div>
+  <div class="err" id="errBox"></div>
 
-  <div class="error-box" id="errBox"></div>
-
-  <!-- RESULTS -->
-  <div class="results" id="results">
+  <!-- Results + Chat -->
+  <div class="chat-wrap" id="chatWrap">
 
     <!-- Score -->
     <div class="score-card">
-      <div class="score-ring">
-        <svg viewBox="0 0 88 88">
-          <circle class="ring-track" cx="44" cy="44" r="37"/>
-          <circle class="ring-fill" id="ringFill" cx="44" cy="44" r="37"
-            stroke-dasharray="232.48" stroke-dashoffset="232.48"/>
+      <div class="ring-wrap">
+        <svg viewBox="0 0 84 84">
+          <circle class="rt" cx="42" cy="42" r="35"/>
+          <circle class="rf" id="rf" cx="42" cy="42" r="35"
+            stroke-dasharray="219.91" stroke-dashoffset="219.91"/>
         </svg>
-        <div class="score-label">
-          <span class="score-num" id="scoreNum">0</span>
-          <span class="score-of">/ 100</span>
+        <div class="ring-mid">
+          <span class="snum" id="sNum">0</span>
+          <span class="sof">/ 100</span>
         </div>
       </div>
       <div class="score-info">
-        <div class="score-verdict" id="scoreVerdict"></div>
-        <div class="score-desc" id="scoreDesc"></div>
+        <div class="verdict" id="sVerdict"></div>
+        <div class="sdesc" id="sDesc"></div>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="stat-row">
-      <div class="stat-box">
-        <div class="stat-num" id="statFound" style="color:#027A48">0</div>
-        <div class="stat-label">Keyword Cocok</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n" id="st0" style="color:var(--good)">0</div>
+        <div class="stat-l">Keyword Cocok</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statMiss" style="color:#B42318">0</div>
-        <div class="stat-label">Keyword Kurang</div>
+      <div class="stat">
+        <div class="stat-n" id="st1" style="color:var(--bad)">0</div>
+        <div class="stat-l">Keyword Kurang</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-num" id="statSug" style="color:#4F46E5">0</div>
-        <div class="stat-label">Saran Perbaikan</div>
+      <div class="stat">
+        <div class="stat-n" id="st2" style="color:var(--accent)">0</div>
+        <div class="stat-l">Saran</div>
       </div>
     </div>
 
-    <!-- Detail sections -->
-    <div id="sectionsWrap"></div>
+    <div id="secWrap"></div>
+
+    <!-- Chat -->
+    <div class="chat-section">
+      <div class="chat-title">💬 Tanya Jawab Lanjutan <span>AI</span></div>
+      <div class="messages" id="msgs"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chatIn"
+          placeholder="Contoh: dalam 1 hari saya bisa sortir 500 paket..."
+          rows="1"
+          onkeydown="chatKey(event)"
+          oninput="autoResize(this)"></textarea>
+        <button class="btn-send" id="sendBtn" onclick="sendChat()">➤</button>
+      </div>
+    </div>
 
   </div>
 </div>
 
-<!-- API MODAL -->
-<div class="api-modal-bg" id="apiModal">
-  <div class="api-modal">
+<!-- Modal API -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
     <h2>Groq API Key</h2>
-    <p>CVRoom AI menggunakan Groq untuk analisis. API key tersimpan di browser kamu saja dan tidak dikirim ke server manapun selain Groq.</p>
-    <label for="apiInput">API Key</label>
-    <input type="password" id="apiInput" placeholder="gsk_..." autocomplete="off" spellcheck="false">
-    <div class="api-modal-hint">Dapatkan gratis di <strong>console.groq.com</strong> → API Keys</div>
-    <div class="api-modal-row">
-      <button class="btn-cancel" onclick="closeApiModal()">Batal</button>
-      <button class="btn-save" onclick="saveApiKey()">Simpan</button>
+    <p>Key tersimpan di browser kamu saja, tidak dikirim ke server manapun selain Groq. Dapatkan gratis di <strong>console.groq.com</strong></p>
+    <label for="apiIn">API Key</label>
+    <input type="password" id="apiIn" placeholder="gsk_..." autocomplete="off" spellcheck="false">
+    <div class="hint">Daftar gratis → API Keys → Create API Key</div>
+    <div class="modal-row">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveKey()">Simpan</button>
     </div>
   </div>
 </div>
 
 <script>
-// ---- PDF.js ----
-(function() {
-  const s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-  s.onload = () => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  };
+// PDF.js
+(function(){
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'};
   document.head.appendChild(s);
 })();
 
-// ---- State ----
-let apiKey = '';
-let cvText = '';
+let apiKey='', cvText='', chatHistory=[];
+try{apiKey=localStorage.getItem('gk')||'';}catch(e){}
+refreshApiUI();
 
-try { apiKey = localStorage.getItem('groq_key') || ''; } catch(e) {}
-updateApiUI();
+function refreshApiUI(){
+  document.getElementById('dot').className='dot'+(apiKey?' on':'');
+  document.getElementById('apiLbl').textContent=apiKey?'API Key ✓':'API Key';
+}
+function openModal(){document.getElementById('modal').classList.add('open');if(apiKey)document.getElementById('apiIn').value=apiKey;setTimeout(()=>document.getElementById('apiIn').focus(),80);}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function saveKey(){const v=document.getElementById('apiIn').value.trim();if(!v)return;apiKey=v;try{localStorage.setItem('gk',v);}catch(e){}refreshApiUI();closeModal();}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-function updateApiUI() {
-  document.getElementById('apiDot').className = 'api-dot' + (apiKey ? ' on' : '');
-  document.getElementById('apiLabel').textContent = apiKey ? 'API Key ✓' : 'Hubungkan API Key';
+// File
+function dOver(e){e.preventDefault();document.getElementById('uploadLbl').classList.add('drag');}
+function dLeave(){document.getElementById('uploadLbl').classList.remove('drag');}
+function dDrop(e){e.preventDefault();dLeave();const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')processFile(f);else showErr('File harus PDF.');}
+function onFile(e){if(e.target.files[0])processFile(e.target.files[0]);}
+
+function rmFile(){
+  cvText='';
+  document.getElementById('pdfIn').value='';
+  document.getElementById('fileOk').classList.remove('show');
+  document.getElementById('uploadLbl').style.display='';
+  document.getElementById('cvMeta').textContent='';
 }
 
-function openApiModal() {
-  document.getElementById('apiModal').classList.add('open');
-  if (apiKey) document.getElementById('apiInput').value = apiKey;
-  setTimeout(() => document.getElementById('apiInput').focus(), 100);
-}
-
-function closeApiModal() {
-  document.getElementById('apiModal').classList.remove('open');
-}
-
-function saveApiKey() {
-  const v = document.getElementById('apiInput').value.trim();
-  if (!v) return;
-  apiKey = v;
-  try { localStorage.setItem('groq_key', v); } catch(e) {}
-  updateApiUI();
-  closeApiModal();
-}
-
-document.getElementById('apiModal').addEventListener('click', function(e) {
-  if (e.target === this) closeApiModal();
-});
-
-// ---- File ----
-function onDragOver(e) {
-  e.preventDefault();
-  document.getElementById('uploadLabel').classList.add('drag');
-}
-function onDragLeave(e) {
-  document.getElementById('uploadLabel').classList.remove('drag');
-}
-function onDrop(e) {
-  e.preventDefault();
-  document.getElementById('uploadLabel').classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if (f && f.type === 'application/pdf') processFile(f);
-  else showErr('File harus berformat PDF.');
-}
-function onFileSelect(e) {
-  if (e.target.files[0]) processFile(e.target.files[0]);
-}
-
-function removeFile() {
-  cvText = '';
-  document.getElementById('pdfInput').value = '';
-  document.getElementById('filePreview').classList.remove('show');
-  document.getElementById('uploadLabel').style.display = '';
-  document.getElementById('cvWordCount').textContent = '';
-}
-
-async function processFile(file) {
-  if (file.size > 10 * 1024 * 1024) { showErr('File terlalu besar. Maks 10MB.'); return; }
-
-  document.getElementById('uploadLabel').style.display = 'none';
-  const preview = document.getElementById('filePreview');
-  const nameEl = document.getElementById('fileName');
-  const metaEl = document.getElementById('fileMeta');
-
-  nameEl.textContent = file.name;
-  metaEl.textContent = 'Membaca isi PDF...';
-  preview.classList.add('show');
+async function processFile(f){
+  if(f.size>10*1024*1024){showErr('File terlalu besar (maks 10MB).');return;}
+  document.getElementById('uploadLbl').style.display='none';
+  const ok=document.getElementById('fileOk');
+  document.getElementById('fName').textContent=f.name;
+  document.getElementById('fStatus').textContent='Membaca...';
+  document.getElementById('fStatus').style.color='var(--warn)';
+  ok.classList.add('show');
   hideErr();
-
-  try {
-    if (!window.pdfjsLib) throw new Error('PDF reader belum siap. Tunggu 1 detik lalu coba lagi.');
-    const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map(x => x.str).join(' ') + '\n';
+  try{
+    if(!window.pdfjsLib)throw new Error('PDF reader belum siap, coba lagi 1 detik.');
+    const buf=await f.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let txt='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const pg=await pdf.getPage(i);
+      const ct=await pg.getTextContent();
+      txt+=ct.items.map(x=>x.str).join(' ')+'\n';
     }
-    cvText = text.trim();
-    if (!cvText) throw new Error('PDF ini tampaknya berupa gambar/scan. Gunakan PDF dengan teks yang bisa diseleksi.');
-    const words = cvText.split(/\s+/).length;
-    metaEl.textContent = '✓ Berhasil dibaca · ' + pdf.numPages + ' halaman · ' + words + ' kata';
-    metaEl.style.color = '#027A48';
-    document.getElementById('cvWordCount').textContent = words + ' kata';
-  } catch(err) {
-    cvText = '';
-    metaEl.textContent = '✗ Gagal dibaca';
-    metaEl.style.color = '#B42318';
+    cvText=txt.trim();
+    if(!cvText)throw new Error('PDF ini berupa gambar/scan. Gunakan PDF dengan teks yang bisa diseleksi.');
+    const w=cvText.split(/\s+/).length;
+    document.getElementById('fStatus').textContent=`✓ Terbaca · ${pdf.numPages} hal · ${w} kata`;
+    document.getElementById('fStatus').style.color='var(--good)';
+    document.getElementById('cvMeta').textContent=w+' kata';
+  }catch(err){
+    cvText='';
+    document.getElementById('fStatus').textContent='✗ Gagal dibaca';
+    document.getElementById('fStatus').style.color='var(--bad)';
     showErr(err.message);
   }
 }
 
-function countWords(el, id) {
-  const w = el.value.trim() ? el.value.trim().split(/\s+/).length : 0;
-  document.getElementById(id).textContent = w ? w + ' kata' : '';
-}
-
-// ---- Analyze ----
-async function analyze() {
+// Analyze
+async function startAnalysis(){
   hideErr();
-  if (!apiKey) { openApiModal(); return; }
-  if (!cvText) { showErr('Upload PDF CV kamu dulu ya.'); return; }
-  const jd = document.getElementById('jdText').value.trim();
-  if (!jd) { showErr('Isi dulu job description-nya.'); return; }
-
+  if(!apiKey){openModal();return;}
+  if(!cvText){showErr('Upload PDF CV dulu ya.');return;}
   setLoading(true);
-  document.getElementById('results').classList.remove('show');
+  document.getElementById('chatWrap').classList.remove('show');
+  chatHistory=[];
 
-  const prompt = `Kamu adalah pakar rekrutmen dan ATS (Applicant Tracking System). Analisis CV ini terhadap job description dengan teliti.
+  const prompt=`Kamu adalah pakar rekrutmen profesional dan ahli ATS (Applicant Tracking System) di Indonesia. Tugasmu menganalisis CV ini secara mendalam.
 
 CV:
-${cvText.slice(0, 4000)}
+${cvText.slice(0,5000)}
 
-JOB DESCRIPTION:
-${jd.slice(0, 2000)}
-
-Balas HANYA dengan JSON valid (tanpa markdown, tanpa teks lain):
+Lakukan analisis lengkap dan balas HANYA dengan JSON valid (tanpa markdown):
 {
   "score": <0-100>,
   "verdict": "<Sangat Kuat|Kuat|Cukup|Perlu Perbaikan|Belum Siap>",
-  "summary": "<ringkasan 2 kalimat dalam bahasa Indonesia>",
-  "keywords_found": ["keyword yang ada di CV dan relevan dengan JD"],
-  "keywords_missing": ["keyword penting di JD tapi tidak ada di CV"],
-  "strengths": ["kekuatan CV dalam konteks JD ini"],
-  "improvements": ["saran konkret untuk memperbaiki CV agar lebih cocok dengan JD ini"],
-  "format_tips": ["saran format/struktur CV jika ada"]
+  "summary": "<ringkasan 2 kalimat dalam bahasa Indonesia informal>",
+  "keywords_found": ["keyword yang kuat di CV ini"],
+  "keywords_missing": ["keyword penting yang sebaiknya ditambahkan"],
+  "strengths": ["kekuatan CV ini"],
+  "improvements": ["saran perbaikan konkret untuk CV ini"],
+  "format_tips": ["saran format jika ada"],
+  "follow_up_question": "<1 pertanyaan tindak lanjut yang paling penting untuk melengkapi analisis, contoh: berapa target paket sortir per hari yang biasa kamu capai?>"
 }`;
 
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama3-70b-8192',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1500
-      })
-    });
+  try{
+    const r=await callGroq([{role:'user',content:prompt}]);
+    let raw=r.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+    let res;
+    try{res=JSON.parse(raw);}
+    catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m)res=JSON.parse(m[0]);else throw new Error('Respons tidak valid.');}
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 401) throw new Error('API Key salah atau expired. Cek kembali.');
-      throw new Error(err?.error?.message || 'Request gagal: ' + res.status);
+    renderScore(res);
+    renderSections(res);
+
+    // Add AI follow-up to chat
+    chatHistory=[{role:'system',content:`Kamu adalah konsultan CV profesional. CV yang sedang dianalisis:\n${cvText.slice(0,3000)}\n\nAwalnya sudah diberikan skor ${res.score}/100. Tugasmu sekarang membantu user memperbaiki CV-nya melalui tanya jawab. Gunakan bahasa Indonesia informal dan ramah. Fokus pada hal konkret dan spesifik.`}];
+
+    document.getElementById('chatWrap').classList.add('show');
+    document.getElementById('msgs').innerHTML='';
+
+    if(res.follow_up_question){
+      addMsg('ai', res.follow_up_question);
+      chatHistory.push({role:'assistant',content:res.follow_up_question});
     }
 
-    const data = await res.json();
-    let raw = data.choices?.[0]?.message?.content || '';
-    raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-
-    let r;
-    try { r = JSON.parse(raw); }
-    catch(e) {
-      const m = raw.match(/\{[\s\S]*\}/);
-      if (m) r = JSON.parse(m[0]);
-      else throw new Error('Respons AI tidak valid. Coba lagi.');
-    }
-
-    renderResult(r);
-
-  } catch(err) {
-    showErr(err.message || 'Terjadi kesalahan. Coba lagi.');
-  } finally {
+  }catch(err){
+    showErr(err.message||'Terjadi kesalahan. Coba lagi.');
+  }finally{
     setLoading(false);
   }
 }
 
-function setLoading(on) {
-  const btn = document.getElementById('analyzeBtn');
-  btn.disabled = on;
-  document.getElementById('btnText').innerHTML = on
-    ? '<div class="spinner"></div> Menganalisis CV...'
-    : 'Analisis CV Sekarang';
+async function sendChat(){
+  const inp=document.getElementById('chatIn');
+  const txt=inp.value.trim();
+  if(!txt||!apiKey)return;
+  inp.value='';
+  autoResize(inp);
+
+  addMsg('user',txt);
+  chatHistory.push({role:'user',content:txt});
+
+  document.getElementById('sendBtn').disabled=true;
+  const typingId=addMsg('ai','Mengetik...',true);
+
+  try{
+    const reply=await callGroq(chatHistory);
+    updateMsg(typingId,reply);
+    chatHistory.push({role:'assistant',content:reply});
+  }catch(e){
+    updateMsg(typingId,'Maaf, terjadi kesalahan. Coba lagi.');
+  }finally{
+    document.getElementById('sendBtn').disabled=false;
+  }
 }
 
-function scoreColor(s) {
-  if (s >= 75) return '#027A48';
-  if (s >= 50) return '#B54708';
-  return '#B42318';
+function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+
+async function callGroq(messages){
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages,temperature:0.4,max_tokens:1200})
+  });
+  if(!res.ok){
+    const e=await res.json().catch(()=>({}));
+    if(res.status===401)throw new Error('API Key salah atau expired.');
+    throw new Error(e?.error?.message||'Request gagal: '+res.status);
+  }
+  const d=await res.json();
+  return d.choices?.[0]?.message?.content||'';
 }
 
-function renderResult(r) {
-  const score = Math.min(100, Math.max(0, r.score || 0));
-  const C = 232.48;
-  const offset = C - (score / 100) * C;
-  const color = scoreColor(score);
-
-  const ring = document.getElementById('ringFill');
-  ring.style.stroke = color;
-  requestAnimationFrame(() => { ring.style.strokeDashoffset = offset; });
-
-  document.getElementById('scoreNum').textContent = score;
-  document.getElementById('scoreNum').style.color = color;
-  document.getElementById('scoreVerdict').textContent = r.verdict || '';
-  document.getElementById('scoreVerdict').style.color = color;
-  document.getElementById('scoreDesc').textContent = r.summary || '';
-
-  const kf = r.keywords_found || [];
-  const km = r.keywords_missing || [];
-  const sug = r.improvements || [];
-  document.getElementById('statFound').textContent = kf.length;
-  document.getElementById('statMiss').textContent = km.length;
-  document.getElementById('statSug').textContent = sug.length;
-
-  const wrap = document.getElementById('sectionsWrap');
-  wrap.innerHTML = '';
-
-  if (kf.length) wrap.appendChild(mkSection('pill-good', '✓ Keyword Cocok (' + kf.length + ')', makeChips(kf, 'chip-found'), true));
-  if (km.length) wrap.appendChild(mkSection('pill-danger', '✗ Keyword Kurang (' + km.length + ')', makeChips(km, 'chip-miss'), true));
-  if ((r.strengths||[]).length) wrap.appendChild(mkSection('pill-good', '★ Kekuatan CV', makeList(r.strengths, 'good-list'), true));
-  if (sug.length) wrap.appendChild(mkSection('pill-warn', '↑ Saran Perbaikan (' + sug.length + ')', makeList(sug, 'warn-list'), true));
-  if ((r.format_tips||[]).length) wrap.appendChild(mkSection('pill-info', '◈ Tips Format', makeList(r.format_tips, ''), false));
-
-  document.getElementById('results').classList.add('show');
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+let msgId=0;
+function addMsg(role,text,typing=false){
+  const id='m'+(++msgId);
+  const div=document.createElement('div');
+  div.className='msg msg-'+(role==='ai'?'ai':'user')+(typing?' typing':'');
+  div.id=id;
+  div.textContent=text;
+  document.getElementById('msgs').appendChild(div);
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+  return id;
+}
+function updateMsg(id,text){
+  const el=document.getElementById(id);
+  if(el){el.textContent=text;el.classList.remove('typing');}
 }
 
-function mkSection(pillClass, title, bodyEl, openDefault) {
-  const wrap = document.createElement('div');
-  wrap.className = 'section-card';
+function scoreColor(s){return s>=75?'var(--good)':s>=50?'var(--warn)':'var(--bad)';}
 
-  const head = document.createElement('div');
-  head.className = 'section-head';
-  head.innerHTML = `<span class="section-pill ${pillClass}">${title}</span><span class="chevron ${openDefault ? 'up' : ''}">▼</span>`;
+function renderScore(r){
+  const s=Math.min(100,Math.max(0,r.score||0));
+  const C=219.91,off=C-(s/100)*C,col=scoreColor(s);
+  const ring=document.getElementById('rf');
+  ring.style.stroke=col;
+  requestAnimationFrame(()=>{ring.style.strokeDashoffset=off;});
+  document.getElementById('sNum').textContent=s;
+  document.getElementById('sNum').style.color=col;
+  document.getElementById('sVerdict').textContent=r.verdict||'';
+  document.getElementById('sVerdict').style.color=col;
+  document.getElementById('sDesc').textContent=r.summary||'';
+  document.getElementById('st0').textContent=(r.keywords_found||[]).length;
+  document.getElementById('st1').textContent=(r.keywords_missing||[]).length;
+  document.getElementById('st2').textContent=(r.improvements||[]).length;
+}
 
-  const body = document.createElement('div');
-  body.className = 'section-body' + (openDefault ? ' open' : '');
+function renderSections(r){
+  const w=document.getElementById('secWrap');
+  w.innerHTML='';
+  if((r.keywords_found||[]).length)w.appendChild(mkSec('p-good','✓ Keyword Cocok',chips(r.keywords_found,'c-good'),true));
+  if((r.keywords_missing||[]).length)w.appendChild(mkSec('p-bad','✗ Keyword Kurang',chips(r.keywords_missing,'c-bad'),true));
+  if((r.strengths||[]).length)w.appendChild(mkSec('p-good','★ Kekuatan',list(r.strengths,'g'),true));
+  if((r.improvements||[]).length)w.appendChild(mkSec('p-warn','↑ Saran Perbaikan',list(r.improvements,'w'),true));
+  if((r.format_tips||[]).length)w.appendChild(mkSec('p-blue','◈ Tips Format',list(r.format_tips,''),false));
+}
+
+function mkSec(pillC,title,bodyEl,open){
+  const wrap=document.createElement('div');wrap.className='sec';
+  const head=document.createElement('div');head.className='sec-head';
+  head.innerHTML=`<span class="pill ${pillC}">${title}</span><span class="chev${open?' up':''}">▼</span>`;
+  const body=document.createElement('div');body.className='sec-body'+(open?' open':'');
   body.appendChild(bodyEl);
-
-  head.addEventListener('click', () => {
-    body.classList.toggle('open');
-    head.querySelector('.chevron').classList.toggle('up');
-  });
-
-  wrap.appendChild(head);
-  wrap.appendChild(body);
-  return wrap;
+  head.addEventListener('click',()=>{body.classList.toggle('open');head.querySelector('.chev').classList.toggle('up');});
+  wrap.appendChild(head);wrap.appendChild(body);return wrap;
 }
-
-function makeChips(items, cls) {
-  const d = document.createElement('div');
-  d.className = 'chip-wrap';
-  items.forEach(t => {
-    const s = document.createElement('span');
-    s.className = 'chip ' + cls;
-    s.textContent = t;
-    d.appendChild(s);
-  });
+function chips(items,cls){
+  const d=document.createElement('div');d.className='chips';
+  items.forEach(t=>{const s=document.createElement('span');s.className='chip '+cls;s.textContent=t;d.appendChild(s);});
   return d;
 }
-
-function makeList(items, cls) {
-  const ul = document.createElement('ul');
-  ul.className = 'sug-list ' + cls;
-  items.forEach(t => {
-    const li = document.createElement('li');
-    li.textContent = t;
-    ul.appendChild(li);
-  });
+function list(items,cls){
+  const ul=document.createElement('ul');ul.className='ul '+cls;
+  items.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
   return ul;
 }
 
-function showErr(msg) {
-  const b = document.getElementById('errBox');
-  b.textContent = '⚠ ' + msg;
-  b.classList.add('show');
+function setLoading(on){
+  const btn=document.getElementById('goBtn');btn.disabled=on;
+  document.getElementById('goTxt').innerHTML=on?'<div class="spin"></div> Menganalisis...':'Analisis CV Sekarang →';
 }
-function hideErr() {
-  document.getElementById('errBox').classList.remove('show');
-}
+function showErr(m){const b=document.getElementById('errBox');b.textContent='⚠ '+m;b.classList.add('show');}
+function hideErr(){document.getElementById('errBox').classList.remove('show');}
 </script>
 </body>
 </html>
